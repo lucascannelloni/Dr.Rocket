@@ -5,11 +5,11 @@
 	// Linking hint for Lightweight IDE
 	// uses framework Cocoa
 #endif
-#include "MicroGlut.h"
-#include "GL_utilities.h"
-#include "VectorUtils3.h"
-#include "loadobj.h"
-#include "LoadTGA.h"
+#include "givenFiles/MicroGlut.h"
+#include "givenFiles/GL_utilities.h"
+#include "givenFiles/VectorUtils3.h"
+#include "givenFiles/loadobj.h"
+#include "givenFiles/LoadTGA.h"
 
 
 mat4 projectionMatrix;
@@ -91,18 +91,8 @@ Model* GenerateTerrain(TextureData *tex)
 			dz = VectorSub(tmp1,tmp2);
 
 			cross = CrossProduct(dz,dx);
-			/*
-			index = x + z * (tex->width)*6;
-			int tmp1 = indexArray[index + 0];
-			int tmp2 = indexArray[index + 1];
-			vec3 v1 = VectorSub(tmp2,tmp1);
-
-			tmp2 = indexArray[index + 2];
-			vec3 v2 = VectorSub(tmp2,tmp1);
-*/
-			//cross =  CrossProduct(dx,dz);
-
 			cross = Normalize(cross);
+
 			normalArray[(x + z * tex->width)*3 + 0] = cross.x;
 			normalArray[(x + z * tex->width)*3 + 1] = cross.y;
 			normalArray[(x + z * tex->width)*3 + 2] = cross.z;
@@ -128,7 +118,7 @@ Model* GenerateTerrain(TextureData *tex)
 
 
 // vertex array object
-Model *m, *m2, *tm, *sphere;
+Model *m, *m2, *tm, *sphere,*skybox;
 // Reference to shader program
 GLuint program;
 GLuint tex1, tex2, skyTex;
@@ -145,7 +135,7 @@ void init(void)
 	projectionMatrix = frustum(-0.1, 0.1, -0.1, 0.1, 0.2, 50.0);
 
 	// Load and compile shader
-	program = loadShaders("terrain.vert", "terrain.frag");
+	program = loadShaders("Shaders/terrain.vert", "Shaders/terrain.frag");
 	glUseProgram(program);
 	printError("init shader");
 
@@ -154,8 +144,8 @@ void init(void)
 	glUniform1i(glGetUniformLocation(program, "tex1"), 0); // Texture unit 0
 	LoadTGATextureSimple("grass.tga", &tex1);
 
-	glUniform1i(glGetUniformLocation(program, "tex2"), 1); // Texture unit 0
-	LoadTGATextureSimple("maskros512.tga",&tex2);
+//	glUniform1i(glGetUniformLocation(program, "tex2"), 1); // Texture unit 0
+//	LoadTGATextureSimple("maskros512.tga",&tex2);
 
 	glUniform1i(glGetUniformLocation(program, "skyTex"), 2); // Texture unit 0
 	LoadTGATextureSimple("SkyBox512.tga",&tex2);
@@ -166,8 +156,8 @@ void init(void)
 	printError("init terrain");
 
 	//Load Sphere Model
-	sphere = LoadModelPlus("groundsphere.obj");
-	skybox = LoadModelPlus("skybox.obj");
+	sphere = LoadModelPlus("Objects/groundsphere.obj");
+	skybox = LoadModelPlus("Objects/skybox.obj");
 
 }
 
@@ -331,7 +321,7 @@ int main(int argc, char **argv)
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
 	glutInitContextVersion(3, 2);
 	glutInitWindowSize (600, 600);
-	glutCreateWindow ("TSBK07 Lab 4");
+	glutCreateWindow ("Dr. Rocket");
 	glutDisplayFunc(display);
 	init ();
 	glutTimerFunc(20, &timer, 0);
