@@ -151,24 +151,26 @@ void display(void)
 	camMatrix = lookAt(cam.x, cam.y, cam.z,
 				lookAtPoint.x, lookAtPoint.y, lookAtPoint.z,
 				cameraUp.x,cameraUp.y,cameraUp.z);
-	modelView = IdentityMatrix();
+
 
 	//SKYBOX
+	modelView = T(0,-0.5,0);
 	mat4 skyMatrix = camMatrix;
 	skyMatrix.m[3] = 0;
 	skyMatrix.m[7] = 0;
 	skyMatrix.m[11] = 0;
-	skyMatrix = Mult(camMatrix,skyMatrix);
+	mat4 totalSky = Mult(skyMatrix,modelView);
 
 	glDisable(GL_DEPTH_TEST);
-	glUniformMatrix4fv(glGetUniformLocation(programSky, "mdlMatrix"), 1, GL_TRUE, skyMatrix.m);
-	glUniformMatrix4fv(glGetUniformLocation(programSky, "camMatrix"), 1, GL_TRUE, camMatrix.m);
+	glUniformMatrix4fv(glGetUniformLocation(programSky, "mdlMatrix"), 1, GL_TRUE, modelView.m);
+	glUniformMatrix4fv(glGetUniformLocation(programSky, "camMatrix"), 1, GL_TRUE, modelView.m);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, skyTex);
 	DrawModel(skybox, programSky, "inPosition", 0, "inTexCoord");
 	glDisable(GL_TEXTURE_2D);
 
 	//TERRAIN
+	modelView = IdentityMatrix();
 	glEnable(GL_DEPTH_TEST);
 	total = Mult(camMatrix, modelView);
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
@@ -184,10 +186,10 @@ void display(void)
 	mat4 sphereTrans = placeModelOnGround(x,z);
 	sphereTrans = Mult(camMatrix, sphereTrans);
 	
-	//glEnable(GL_TEXTURE_2D);
-	//glActiveTexture(GL_TEXTURE1);
-	//glBindTexture(GL_TEXTURE_2D, tex2);		// Bind Our Texture tex2
-	//glUniform1i(glGetUniformLocation(program, "tex2"), 1); // Texture unit 1
+	glEnable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, tex2);		// Bind Our Texture tex2
+	glUniform1i(glGetUniformLocation(program, "tex2"), 1); // Texture unit 1
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, sphereTrans.m);
 	glUniformMatrix4fv(glGetUniformLocation(program, "camMatrix"), 1, GL_TRUE, camMatrix.m);
 	DrawModel(sphere, program, "inPosition", "inNormal", "inTexCoord");
