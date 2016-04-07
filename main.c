@@ -11,13 +11,14 @@
 #include "givenFiles/loadobj.h"
 #include "givenFiles/LoadTGA.h"
 #include "world.h"
+#include "rocket.h"
 
 
 mat4 projectionMatrix;
 vec3 cam = {10, 10, 10};
-vec3 dirVect,cameraFront;
 vec3 lookAtPoint = {0, 0, 0};
 vec3 cameraUp = {0,1,0};
+vec3 cameraFront;
 bool firstMouse = true;
 int lastX,lastY;
 float pi = 3.1415;
@@ -53,7 +54,6 @@ void init(void)
 	glUniform1i(glGetUniformLocation(program, "tex1"), 0); // Texture unit 0
 	LoadTGATextureSimple("grass.tga", &tex1);
 
-
 	glUseProgram(programSky);
 	glUniform1i(glGetUniformLocation(programSky, "skyTex"), 2); // Texture unit 0
 	LoadTGATextureSimple("SkyBox512.tga",&skyTex);
@@ -69,64 +69,10 @@ void init(void)
 
 }
 
-float heightCalc(float x, float z)
-{
-	int xCeil = ceil(x);
-	int zCeil = ceil(z);
-
-	float y1 = tm->vertexArray[(xCeil + zCeil*texwidth)*3 + 1];
-	float y2 = tm->vertexArray[(xCeil - 1 + zCeil*texwidth)*3 + 1];
-	float y3 = tm->vertexArray[(xCeil + (zCeil - 1)*texwidth)*3 + 1];
-	float y4 = tm->vertexArray[(xCeil - 1 + (zCeil - 1)*texwidth)*3 + 1];
-
-	float xe = xCeil - x;
-	float ze = zCeil - z;
-	float A = y4*xe + y3*(1-xe);
-	float B = y2*xe + y1*(1-xe);
-	float y = A*ze + B*(1-ze);
-	return y;
-}
-
-void keyHandler()
-{
-	dirVect = VectorSub(lookAtPoint,cam);
-	GLfloat cameraSpeed = 0.4f;
-
-	if(glutKeyIsDown('s')) { cam = VectorSub(cam,ScalarMult(dirVect,cameraSpeed));
-		float yCam = heightCalc(cam.x,cam.z);
-		if (cam.y < yCam + 0.5)
-		{
-			cam.y = yCam + 0.5;
-		}
-		lookAtPoint = VectorAdd(dirVect,cam);}
-    if(glutKeyIsDown('w')) { cam = VectorAdd(cam,ScalarMult(dirVect,cameraSpeed));
-    	float yCam = heightCalc(cam.x,cam.z);
-		if (cam.y < yCam + 0.5)
-		{
-			cam.y = yCam + 0.5;
-		}
-    lookAtPoint = VectorAdd(dirVect,cam);}
-    if(glutKeyIsDown('a')) { cam = VectorSub(cam,ScalarMult(Normalize(CrossProduct(dirVect,cameraUp)),cameraSpeed));
-    	float yCam = heightCalc(cam.x,cam.z);
-		if (cam.y < yCam + 0.5)
-		{
-			cam.y = yCam + 0.5;
-		}
-    	lookAtPoint = VectorAdd(dirVect,cam);}
-    if(glutKeyIsDown('d')) { cam = VectorAdd(cam,ScalarMult(Normalize(CrossProduct(dirVect,cameraUp)),cameraSpeed));
-    	float yCam = heightCalc(cam.x,cam.z);
-		if (cam.y < yCam + 0.5)
-		{
-			cam.y = yCam + 0.5;
-		}
-    lookAtPoint = VectorAdd(dirVect,cam);}
-}
-
-
 
 mat4 placeModelOnGround(float x, float z)
 {
- 	float y = heightCalc(x,z);
+ 	float y = heightCalc(x,z,tm);
  	printf("x %f\n", x);
  	printf("y %f\n", y);
  	printf("z %f\n", z);
@@ -147,7 +93,8 @@ void display(void)
 	glUseProgram(program);
 
 	// Build matrix
-	keyHandler();
+
+	keyHandler(&cam, &lookAtPoint,&cameraUp,tm);
 	camMatrix = lookAt(cam.x, cam.y, cam.z,
 				lookAtPoint.x, lookAtPoint.y, lookAtPoint.z,
 				cameraUp.x,cameraUp.y,cameraUp.z);
@@ -162,8 +109,8 @@ void display(void)
 	mat4 totalSky = Mult(skyMatrix,modelView);
 
 	glDisable(GL_DEPTH_TEST);
-	glUniformMatrix4fv(glGetUniformLocation(programSky, "mdlMatrix"), 1, GL_TRUE, modelView.m);
-	glUniformMatrix4fv(glGetUniformLocation(programSky, "camMatrix"), 1, GL_TRUE, modelView.m);
+	glUniformMatrix4fv(glGetUniformLocation(programSky, "mdlMatrix"), 1, GL_TRUE, totalSky.m);
+	glUniformMatrix4fv(glGetUniformLocation(programSky, "camMatrix"), 1, GL_TRUE, camMatrix.m);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, skyTex);
 	DrawModel(skybox, programSky, "inPosition", 0, "inTexCoord");
@@ -205,28 +152,27 @@ void timer(int i)
 	glutTimerFunc(20, &timer, i);
 	glutPostRedisplay();
 }
-
 void mouse(int x, int y)
 {
-	x = x-300;
-	y = y-300;
+    x = x-300;
+    y = y-300;
 
-	if(firstMouse)
+    if(firstMouse)
     {
          lastX = x;
          lastY = y;
         firstMouse = false;
     }
-	GLfloat xoffset = x - lastX;
-	GLfloat yoffset = y - lastY;
-	lastX = x;
-	lastY = y;
+    GLfloat xoffset = x - lastX;
+    GLfloat yoffset = y - lastY;
+    lastX = x;
+    lastY = y;
 
-	GLfloat sensitivity = 0.4;
+    GLfloat sensitivity = 0.4;
     xoffset = sensitivity*xoffset;
     yoffset = sensitivity*yoffset;
 
-   	yaw  = yaw + xoffset;
+    yaw  = yaw + xoffset;
     pitch = pitch + yoffset;
 
     if(pitch > 89.0f)
@@ -241,7 +187,6 @@ void mouse(int x, int y)
     
     lookAtPoint = VectorAdd(cameraFront,cam);
 }
-
 
 int main(int argc, char **argv)
 {

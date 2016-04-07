@@ -95,4 +95,20 @@ Model* GenerateTerrain(TextureData *tex)
 	return model;
 }
 
+float heightCalc(float x, float z, Model* tm)
+{
+    int xCeil = ceil(x);
+    int zCeil = ceil(z);
 
+    float y1 = tm->vertexArray[(xCeil + zCeil*texwidth)*3 + 1];
+    float y2 = tm->vertexArray[(xCeil - 1 + zCeil*texwidth)*3 + 1];
+    float y3 = tm->vertexArray[(xCeil + (zCeil - 1)*texwidth)*3 + 1];
+    float y4 = tm->vertexArray[(xCeil - 1 + (zCeil - 1)*texwidth)*3 + 1];
+
+    float xe = xCeil - x;
+    float ze = zCeil - z;
+    float A = y4*xe + y3*(1-xe);
+    float B = y2*xe + y1*(1-xe);
+    float y = A*ze + B*(1-ze);
+    return y;
+}
