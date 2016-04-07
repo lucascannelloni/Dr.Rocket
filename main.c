@@ -49,13 +49,13 @@ void init(void)
 
 	glUseProgram(program);
 	printError("init shader");
-
 	glUniformMatrix4fv(glGetUniformLocation(program, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 	glUniform1i(glGetUniformLocation(program, "tex1"), 0); // Texture unit 0
 	LoadTGATextureSimple("grass.tga", &tex1);
 
 	glUseProgram(programSky);
-	glUniform1i(glGetUniformLocation(programSky, "skyTex"), 2); // Texture unit 0
+	glUniformMatrix4fv(glGetUniformLocation(programSky, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
+	glUniform1i(glGetUniformLocation(programSky, "skyTex"), 0); // Texture unit 0
 	LoadTGATextureSimple("SkyBox512.tga",&skyTex);
 
 // Load terrain data
@@ -87,10 +87,8 @@ void display(void)
 	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
 	
 	mat4 total, modelView, camMatrix;
-	
 	printError("pre display");
-	
-	glUseProgram(program);
+
 
 	// Build matrix
 
@@ -101,22 +99,25 @@ void display(void)
 
 
 	//SKYBOX
-	modelView = T(0,-0.5,0);
+	modelView = T(10,0,10);
 	mat4 skyMatrix = camMatrix;
 	skyMatrix.m[3] = 0;
 	skyMatrix.m[7] = 0;
 	skyMatrix.m[11] = 0;
-	mat4 totalSky = Mult(skyMatrix,modelView);
+//	skyMatrix.m[15] = 1;
+//	mat4 totalSky = Mult(skyMatrix,modelView);
 
+	glUseProgram(programSky);
 	glDisable(GL_DEPTH_TEST);
-	glUniformMatrix4fv(glGetUniformLocation(programSky, "mdlMatrix"), 1, GL_TRUE, totalSky.m);
-	glUniformMatrix4fv(glGetUniformLocation(programSky, "camMatrix"), 1, GL_TRUE, camMatrix.m);
-	glActiveTexture(GL_TEXTURE2);
+	glUniformMatrix4fv(glGetUniformLocation(programSky, "mdlMatrix"), 1, GL_TRUE, skyMatrix.m);
+	glUniformMatrix4fv(glGetUniformLocation(programSky, "camMatrix"), 1, GL_TRUE, skyMatrix.m);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, skyTex);
 	DrawModel(skybox, programSky, "inPosition", 0, "inTexCoord");
 	glDisable(GL_TEXTURE_2D);
 
 	//TERRAIN
+	glUseProgram(program);
 	modelView = IdentityMatrix();
 	glEnable(GL_DEPTH_TEST);
 	total = Mult(camMatrix, modelView);
