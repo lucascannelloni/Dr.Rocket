@@ -40,15 +40,22 @@ void main(void)
     specular = pow(cosAng,specularExponent);
     //specular = 0;
     
+    if(pos.y > 5){
     
     // Out Color
-    if(pos.y < 1){
-        outColor2 = vec4(0,0.2,0.5,0.3);
-    } else {
-        outColor2 = mix(texture(tex1,texCoord),texture(tex2,texCoord),0.3);
-    }
-  	outColor1 = vec4(0.5*(diffuse + specular), 0.5*(diffuse + specular), 0.5*(diffuse + specular),1);
-    //outColor2 = mix(texture(tex1,texCoord),texture(tex2,texCoord),0.3);
+    outColor2 = mix(texture(tex1,texCoord),texture(tex2,texCoord),0.3);
+    outColor1 = vec4(0.5*(diffuse + specular), 0.5*(diffuse + specular), 0.5*(diffuse + specular),1);
     outColor = outColor1*outColor2;
-    
+    }
+    else
+    {
+        
+        outColor2 = mix(texture(tex1,vec2(reflectDir)),texture(tex2,vec2(reflectDir)),0.3);
+        outColor1 = vec4(0.3,0.2,0.5,0.7);
+        outColor = outColor1*outColor2;
+        
+    }
+
+    //outColor2 = mix(texture(tex1,texCoord),texture(tex2,texCoord),0.3);
+   // outColor = outColor1*outColor2;
 }

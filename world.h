@@ -6,5 +6,7 @@
 
 Model* GenerateTerrain(TextureData *tex);
 float heightCalc(float x, float z, Model* tm);
+void loadTextures(GLuint *cubemap, TextureData *t);
+//GLuint loadCubemap();
 
 #endif
