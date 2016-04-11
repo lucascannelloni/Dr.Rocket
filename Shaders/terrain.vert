@@ -32,8 +32,6 @@ void main(void)
     vec3 viewDirectionInViewCoord = normalize(posInViewCoord);
     vec3 viewDirectionInWorldCoord = inverse(mat3(camMatrix)) * viewDirectionInViewCoord;
     
-    // Also transform the normal vector to world coordinates (= skybox coordinates).
     vec3 wcNormal = mat3(mdlMatrix) * inNormal;
-    // Using "reflect", we reflect the view direction to a reflected direction
-    reflectedView = reflect(viewDirectionInWorldCoord, normalize(wcNormal)); // world coord = model of skybox
+    reflectedView = reflect(viewDirectionInWorldCoord, normalize(wcNormal));
 }
