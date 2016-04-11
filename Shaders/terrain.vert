@@ -8,6 +8,7 @@ out vec3 transformedNormal;
 out vec4 vertexPoint;
 out vec3 exNormal;
 out vec3 pos;
+out vec3 reflectedView;
 
 // NY
 uniform mat4 projMatrix;
@@ -25,4 +26,14 @@ void main(void)
     
     vertexPoint = mdlMatrix*vec4(inPosition,1.0);
     exNormal = inNormal;
+    
+    
+    vec3 posInViewCoord = vec3(camMatrix * mdlMatrix * vec4(inPosition, 1.0));
+    vec3 viewDirectionInViewCoord = normalize(posInViewCoord);
+    vec3 viewDirectionInWorldCoord = inverse(mat3(camMatrix)) * viewDirectionInViewCoord;
+    
+    // Also transform the normal vector to world coordinates (= skybox coordinates).
+    vec3 wcNormal = mat3(mdlMatrix) * inNormal;
+    // Using "reflect", we reflect the view direction to a reflected direction
+    reflectedView = reflect(viewDirectionInWorldCoord, normalize(wcNormal)); // world coord = model of skybox
 }

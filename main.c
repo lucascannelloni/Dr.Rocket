@@ -141,6 +141,8 @@ void init(void)
 	printError("init shader");
 	glUniformMatrix4fv(glGetUniformLocation(program, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 	glUniform1i(glGetUniformLocation(program, "tex1"), 0); // Texture unit 0
+	glUniform1i(glGetUniformLocation(program, "cubeMap"), 1); // Texture unit 0
+
 	LoadTGATextureSimple("dirt.tga", &tex1);
 
 	// Load terrain data
@@ -152,7 +154,7 @@ void init(void)
 	glUseProgram(programSky);
 	glUniformMatrix4fv(glGetUniformLocation(programSky, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 	glUniform1i(glGetUniformLocation(programSky, "skyTex"), 0); // Texture unit 0
-	loadTextures(&cubeMap, &skyTex); // load skybox texture
+	loadTextures(&cubeMap, skyTex); // load skybox texture
 
 	for (i = 0; i < 6; i++)
 	{
@@ -168,7 +170,7 @@ void init(void)
 
 	//Load Sphere Model
 	sphere = LoadModelPlus("Objects/groundsphere.obj");
-	skybox = LoadModelPlus("Objects/skybox.obj");
+//	skybox = LoadModelPlus("Objects/skybox.obj");
 }
 
 
@@ -211,7 +213,6 @@ void display(void)
 	glUseProgram(programSky);
 	glDisable(GL_DEPTH_TEST);
 	glUniformMatrix4fv(glGetUniformLocation(programSky, "mdlMatrix"), 1, GL_TRUE, totalSky.m);
-//	glUniformMatrix4fv(glGetUniformLocation(programSky, "camMatrix"), 1, GL_TRUE, skyMatrix.m);
 	printError("skybox display");
 	for (i = 0; i < 6; i++)
 	{
@@ -219,23 +220,20 @@ void display(void)
 		DrawModel(box[i], programSky, "inPosition", NULL, "inTexCoord");
 	}
 	glEnable(GL_DEPTH_TEST);
-	glActiveTexture(GL_TEXTURE0); // Just make sure the texture unit match
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-
 
 	//TERRAIN
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
 	glUseProgram(program);
-	glEnable(GL_DEPTH_TEST);
 //	glEnable (GL_BLEND); //HMM?
 //	glBlendFunc (GL_ONE, GL_ONE); // HMM?
 	mat4 terrainTrans = T(0,-0.5,0);
 	total = Mult(camMatrix, terrainTrans);
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
-	glUniformMatrix4fv(glGetUniformLocation(program, "camMatrix"), 1, GL_TRUE, camMatrix.m);
+	glUniformMatrix4fv(glGetUniformLocation(program, "camMatrix"), 1, GL_TRUE, modelView.m);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
-	glDisable(GL_TEXTURE_2D);
 
 	// SPHERE
 	/*

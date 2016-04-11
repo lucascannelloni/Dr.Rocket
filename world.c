@@ -17,11 +17,11 @@ char *textureFileName[6] =
   "Skyboxes/mystic_ft.tga",
 };
 
-void loadTextures(GLuint *cubemap, TextureData *t)
+void *loadTextures(GLuint *cubemap, TextureData *t)
 {
 	int i;
 	
-	glGenTextures(1, &cubemap);			// Generate OpenGL texture IDs
+	glGenTextures(1, cubemap);			// Generate OpenGL texture IDs
 	glActiveTexture(GL_TEXTURE0); // Just make sure the texture unit match
 	
 	// Note all operations on GL_TEXTURE_CUBE_MAP, not GL_TEXTURE_2D
@@ -35,7 +35,7 @@ void loadTextures(GLuint *cubemap, TextureData *t)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 	// Load to cube map
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, *cubemap);
 	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, t[0].w, t[0].h, 0, GL_RGBA, GL_UNSIGNED_BYTE, t[0].imageData);
 	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, t[1].w, t[1].h, 0, GL_RGBA, GL_UNSIGNED_BYTE, t[1].imageData);
 	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, t[2].w, t[2].h, 0, GL_RGBA, GL_UNSIGNED_BYTE, t[2].imageData);
