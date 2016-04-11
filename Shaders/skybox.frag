@@ -2,9 +2,9 @@
 
 out vec4 out_Colors;
 in vec2 texCoord;
-uniform sampler2D texUnit;
+uniform sampler2D skyTex;
 
 void main(void)
 {
-	out_Colors = texture(texUnit, texCoord);
+	out_Colors = texture(skyTex, texCoord);
 }
