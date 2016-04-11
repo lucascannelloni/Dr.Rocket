@@ -154,7 +154,7 @@ void init(void)
 	glUseProgram(programSky);
 	glUniformMatrix4fv(glGetUniformLocation(programSky, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 	glUniform1i(glGetUniformLocation(programSky, "skyTex"), 0); // Texture unit 0
-	loadTextures(cubeMap, skyTex); // load skybox texture
+	loadTextures(&cubeMap, skyTex); // load skybox texture
 
 	for (i = 0; i < 6; i++)
 	{
