@@ -75,7 +75,7 @@ void init(void)
 
 	//Load Sphere Model
 	sphere = LoadModelPlus("Objects/groundsphere.obj");
-    rocketObject = LoadModelPlus("Objects/windmill-walls.obj");
+    rocketObject = LoadModelPlus("Objects/AGM65.obj");
 //	skybox = LoadModelPlus("Objects/skybox.obj");
 }
 
