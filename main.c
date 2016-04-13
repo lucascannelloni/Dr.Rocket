@@ -16,7 +16,7 @@
 mat4 projectionMatrix;
 vec3 cam = {50, 20, 40};
 vec3 lookAtPoint = {0, 0, 0};
-vec3 rocketPoint = {0, 0, 0};
+vec3 rocketPoint = {50, 20, 50};
 vec3 cameraUp = {0,1,0};
 vec3 cameraFront;
 bool firstMouse = true;
@@ -25,9 +25,10 @@ float pi = 3.1415;
 float yaw, pitch;
 int texwidth;
 int texheight;
+GLfloat tiltAngle;
 
 // vertex array object
-Model *m, *m2, *tm, *sphere,*skybox,*box[6];
+Model *m, *m2, *tm, *sphere,*skybox,*box[6],*rocketObject;
 
 // Reference to shader program
 GLuint program,programSky;
@@ -74,6 +75,7 @@ void init(void)
 
 	//Load Sphere Model
 	sphere = LoadModelPlus("Objects/groundsphere.obj");
+    rocketObject = LoadModelPlus("Objects/windmill-walls.obj");
 //	skybox = LoadModelPlus("Objects/skybox.obj");
 }
 
@@ -90,8 +92,9 @@ mat4 placeModelOnGround(float x, float z)
 
 void display(void)
 {
-	int i;
-
+	
+cam = VectorSub(rocketPoint,cameraFront);
+    
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
@@ -100,9 +103,9 @@ void display(void)
 	printError("pre display");
 
 	// Build matrix
-	keyHandler(&cam, &lookAtPoint,&cameraUp,tm, &rocketPoint);
+	mat4 rocketRotate = keyHandler(&cam,&cameraUp,tm, &rocketPoint);
 	camMatrix = lookAt(cam.x, cam.y, cam.z,
-				lookAtPoint.x, lookAtPoint.y, lookAtPoint.z,
+				rocketPoint.x, rocketPoint.y, rocketPoint.z,
 				cameraUp.x,cameraUp.y,cameraUp.z);
 
 
@@ -118,7 +121,8 @@ void display(void)
 	glDisable(GL_DEPTH_TEST);
 	glUniformMatrix4fv(glGetUniformLocation(programSky, "mdlMatrix"), 1, GL_TRUE, totalSky.m);
 	printError("skybox display");
-	for (i = 0; i < 6; i++)
+   
+	for (int i = 0; i < 6; i++)
 	{
 		glBindTexture(GL_TEXTURE_2D, skyTex[i].texID);
 		DrawModel(box[i], programSky, "inPosition", NULL, "inTexCoord");
@@ -139,11 +143,11 @@ void display(void)
 	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
 
-	// SPHERE
+	// ROCKET
 	
-	float x = 10 + 5*sin(0.0005*t);
-	float z = 10 + 7*cos(0.0005*t);
-	mat4 sphereTrans = placeModelOnGround(x,z);
+    mat4 sphereTrans = T(rocketPoint.x,rocketPoint.y,rocketPoint.z);
+
+    sphereTrans = Mult(sphereTrans,rocketRotate);
 	sphereTrans = Mult(camMatrix, sphereTrans);
 	
 	glEnable(GL_TEXTURE_2D);
@@ -152,7 +156,7 @@ void display(void)
 	glUniform1i(glGetUniformLocation(program, "tex1"), 0); // Texture unit 1
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, sphereTrans.m);
 	glUniformMatrix4fv(glGetUniformLocation(program, "camMatrix"), 1, GL_TRUE, camMatrix.m);
-	DrawModel(sphere, program, "inPosition", "inNormal", "inTexCoord");
+	DrawModel(rocketObject, program, "inPosition", "inNormal", "inTexCoord");
 
 	glDisable(GL_TEXTURE_2D);
 	
@@ -199,7 +203,7 @@ void mouse(int x, int y)
     cameraFront.z = sin(pi*yaw/180) * cos(pi*pitch/180);
     cameraFront = Normalize(cameraFront);
     
-    lookAtPoint = VectorAdd(cameraFront,cam);
+    cam = VectorSub(rocketPoint,cameraFront);
 }
 
 int main(int argc, char **argv)
