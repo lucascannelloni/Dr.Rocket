@@ -16,6 +16,7 @@
 mat4 projectionMatrix;
 vec3 cam = {50, 20, 40};
 vec3 lookAtPoint = {0, 0, 0};
+vec3 rocketPoint = {0, 0, 0};
 vec3 cameraUp = {0,1,0};
 vec3 cameraFront;
 bool firstMouse = true;
@@ -99,7 +100,7 @@ void display(void)
 	printError("pre display");
 
 	// Build matrix
-	keyHandler(&cam, &lookAtPoint,&cameraUp,tm);
+	keyHandler(&cam, &lookAtPoint,&cameraUp,tm, &rocketPoint);
 	camMatrix = lookAt(cam.x, cam.y, cam.z,
 				lookAtPoint.x, lookAtPoint.y, lookAtPoint.z,
 				cameraUp.x,cameraUp.y,cameraUp.z);
@@ -139,22 +140,22 @@ void display(void)
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
 
 	// SPHERE
-	/*
+	
 	float x = 10 + 5*sin(0.0005*t);
 	float z = 10 + 7*cos(0.0005*t);
 	mat4 sphereTrans = placeModelOnGround(x,z);
 	sphereTrans = Mult(camMatrix, sphereTrans);
 	
 	glEnable(GL_TEXTURE_2D);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, tex2);		// Bind Our Texture tex2
-	glUniform1i(glGetUniformLocation(program, "tex2"), 1); // Texture unit 1
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex2
+	glUniform1i(glGetUniformLocation(program, "tex1"), 0); // Texture unit 1
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, sphereTrans.m);
 	glUniformMatrix4fv(glGetUniformLocation(program, "camMatrix"), 1, GL_TRUE, camMatrix.m);
 	DrawModel(sphere, program, "inPosition", "inNormal", "inTexCoord");
 
 	glDisable(GL_TEXTURE_2D);
-	*/
+	
 	printError("display 2");
 	
 	glutSwapBuffers();
