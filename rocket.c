@@ -2,8 +2,18 @@
 
 vec3 dirVect;
 
-void keyHandler(vec3* cam, vec3* lookAtPoint, vec3* cameraUp, Model* tm)
+void keyHandler(vec3* cam, vec3* lookAtPoint, vec3* cameraUp, Model* tm, vec3* rocketPoint)
 {
+    
+    
+    
+    if(glutKeyIsDown('g'))
+    {
+        rocketPoint->y = rocketPoint->y+1;
+    }
+    
+    
+    
     dirVect = VectorSub(*lookAtPoint,*cam);
     GLfloat cameraSpeed = 0.4f;
 
