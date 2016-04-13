@@ -29,7 +29,7 @@ mat4 keyHandler(vec3* cam, vec3* cameraUp, Model* tm, vec3* rocketPoint)
     
     mat4 rocketRotate = ArbRotate(orthRocketVect,tiltAngle);
     
-    if(glutKeyIsDown('SPACEBAR'))
+    if(glutKeyIsDown('y'))
     {
         vec3 thrustDir = MultVec3(rocketRotate,*cameraUp);
         *rocketPoint = VectorAdd(*rocketPoint,thrustDir);

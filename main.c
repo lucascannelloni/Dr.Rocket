@@ -15,7 +15,6 @@
 
 mat4 projectionMatrix;
 vec3 cam = {50, 20, 40};
-vec3 lookAtPoint = {0, 0, 0};
 vec3 rocketPoint = {50, 20, 50};
 vec3 cameraUp = {0,1,0};
 vec3 cameraFront;
@@ -28,7 +27,7 @@ int texheight;
 GLfloat tiltAngle;
 
 // vertex array object
-Model *m, *m2, *tm, *sphere,*skybox,*box[6],*rocketObject;
+Model *m, *m2, *tm, *skybox,*box[6],*rocketObject;
 
 // Reference to shader program
 GLuint program,programSky;
@@ -73,10 +72,15 @@ void init(void)
 	// load skybox texture
 	loadTextures(&cubeMap, skyTex, box);
 
+
 	//Load Sphere Model
 	sphere = LoadModelPlus("Objects/groundsphere.obj");
     rocketObject = LoadModelPlus("Objects/AGM65.obj");
 //	skybox = LoadModelPlus("Objects/skybox.obj");
+
+	//Load Rocket Model
+    rocketObject = LoadModelPlus("Objects/windmill-walls.obj");
+
 }
 
 
@@ -92,8 +96,8 @@ mat4 placeModelOnGround(float x, float z)
 
 void display(void)
 {
-	
-cam = VectorSub(rocketPoint,cameraFront);
+	//Update Cam to follow Rocket
+	cam = VectorSub(rocketPoint,cameraFront);
     
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -102,15 +106,16 @@ cam = VectorSub(rocketPoint,cameraFront);
 	mat4 total, modelView, camMatrix;
 	printError("pre display");
 
-	// Build matrix
+	// Key handler for update of Rocket position and orientation, camera pos etc
 	mat4 rocketRotate = keyHandler(&cam,&cameraUp,tm, &rocketPoint);
 	camMatrix = lookAt(cam.x, cam.y, cam.z,
 				rocketPoint.x, rocketPoint.y, rocketPoint.z,
 				cameraUp.x,cameraUp.y,cameraUp.z);
 
-
-	//SKYBOX
-	modelView = IdentityMatrix();	// T(0,-.7,0);
+	// -------
+	// SKYBOX
+	// -------
+	modelView = IdentityMatrix();
 	mat4 skyMatrix = camMatrix;
 	skyMatrix.m[3] = 0;
 	skyMatrix.m[7] = 0;
@@ -129,32 +134,37 @@ cam = VectorSub(rocketPoint,cameraFront);
 	}
 	glEnable(GL_DEPTH_TEST);
 
-	//TERRAIN
+	//----------
+	// TERRAIN
+	//----------
+	// send cubemap to terrain shaders as well (i think)
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
 	glUseProgram(program);
-//	glEnable (GL_BLEND); //HMM?
-//	glBlendFunc (GL_ONE, GL_ONE); // HMM?
+	//Transformation matrix for terrain
 	mat4 terrainTrans = T(0,-0.5,0);
 	total = Mult(camMatrix, terrainTrans);
+
+	//send to shaders & draw
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
 	glUniformMatrix4fv(glGetUniformLocation(program, "camMatrix"), 1, GL_TRUE, modelView.m);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
 
+	// --------
 	// ROCKET
+	//---------
+	// translate and rotate Rocket
+    mat4 rocketTrans = Mult(T(rocketPoint.x,rocketPoint.y,rocketPoint.z),rocketRotate);
+	mat4 rocketTotal = Mult(camMatrix, rocketTrans);
 	
-    mat4 sphereTrans = T(rocketPoint.x,rocketPoint.y,rocketPoint.z);
-
-    sphereTrans = Mult(sphereTrans,rocketRotate);
-	sphereTrans = Mult(camMatrix, sphereTrans);
-	
+	// bind texture, send to shader & draw model
 	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex2
-	glUniform1i(glGetUniformLocation(program, "tex1"), 0); // Texture unit 1
-	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, sphereTrans.m);
+	glBindTexture(GL_TEXTURE_2D, tex1);
+	glUniform1i(glGetUniformLocation(program, "tex1"), 0);
+	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, rocketTotal.m);
 	glUniformMatrix4fv(glGetUniformLocation(program, "camMatrix"), 1, GL_TRUE, camMatrix.m);
 	DrawModel(rocketObject, program, "inPosition", "inNormal", "inTexCoord");
 
