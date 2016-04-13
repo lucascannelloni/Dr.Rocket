@@ -14,7 +14,7 @@
 #include "rocket.h"
 
 mat4 projectionMatrix;
-vec3 cam = {10, 10, 10};
+vec3 cam = {50, 20, 40};
 vec3 lookAtPoint = {0, 0, 0};
 vec3 cameraUp = {0,1,0};
 vec3 cameraFront;
@@ -27,99 +27,11 @@ int texheight;
 
 // vertex array object
 Model *m, *m2, *tm, *sphere,*skybox,*box[6];
+
 // Reference to shader program
 GLuint program,programSky;
 GLuint tex1, tex2, cubeMap;
-TextureData ttex, skyTex[6];
-
-GLfloat vertices[6][6*3] =
-{
-	{ // +x
-		0.5,-0.5,-0.5,		// 1
-		0.5,0.5,-0.5,		// 2
-		0.5,0.5,0.5,			// 6
-		0.5,-0.5,0.5,		// 5
-	},
-	{ // -x
-		-0.5,-0.5,-0.5,		// 0 -0
-		-0.5,-0.5,0.5,		// 4 -1
-		-0.5,0.5,0.5,		// 7 -2
-		-0.5,0.5,-0.5,		// 3 -3
-	},
-	{ // +y
-		0.5,0.5,-0.5,		// 2 -0
-		-0.5,0.5,-0.5,		// 3 -1
-		-0.5,0.5,0.5,		// 7 -2
-		0.5,0.5,0.5,			// 6 -3
-	},
-	{ // -y
-		-0.5,-0.5,-0.5,		// 0
-		0.5,-0.5,-0.5,		// 1
-		0.5,-0.5,0.5,		// 5
-		-0.5,-0.5,0.5		// 4
-	},
-	{ // +z
-		-0.5,-0.5,0.5,		// 4
-		0.5,-0.5,0.5,		// 5
-		0.5,0.5,0.5,			// 6
-		-0.5,0.5,0.5,		// 7
-	},
-	{ // -z
-		-0.5,-0.5,-0.5,	// 0
-		-0.5,0.5,-0.5,		// 3
-		0.5,0.5,-0.5,		// 2
-		0.5,-0.5,-0.5,		// 1
-	}
-};
-
-GLfloat texcoord[6][6*2] =
-{
-	{
-		1.0, 1.0,
-		1.0, 0.0, // left OK
-		0.0, 0.0,
-		0.0, 1.0,
-	},
-	{
-		0.0, 1.0, // right OK
-		1.0, 1.0,
-		1.0, 0.0,
-		0.0, 0.0,
-	},
-	{
-		1.0, 0.0, // top OK
-		0.0, 0.0,
-		0.0, 1.0,
-		1.0, 1.0,
-	},
-	{
-		0.0, 1.0,
-		1.0, 1.0,
-		1.0, 0.0, // bottom
-		0.0, 0.0,
-	},
-	{
-		0.0, 1.0,
-		1.0, 1.0,
-		1.0, 0.0, // back OK
-		0.0, 0.0,
-	},
-	{
-		1.0, 1.0,
-		1.0, 0.0, // front OK
-		0.0, 0.0,
-		0.0, 1.0,
-	}
-};
-GLuint indices[6][6] =
-{
-	{0, 2, 1, 0, 3, 2},
-	{0, 2, 1, 0, 3, 2},
-	{0, 2, 1, 0, 3, 2},
-	{0, 2, 1, 0, 3, 2},
-	{0, 2, 1, 0, 3, 2},
-	{0, 2, 1, 0, 3, 2}
-};
+TextureData ttex, skyTex[6],water;
 
 void init(void)
 {
@@ -150,23 +62,14 @@ void init(void)
 	tm = GenerateTerrain(&ttex);
 	printError("init terrain");
 
+	
 	//SKYBOX
 	glUseProgram(programSky);
 	glUniformMatrix4fv(glGetUniformLocation(programSky, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 	glUniform1i(glGetUniformLocation(programSky, "skyTex"), 0); // Texture unit 0
-	loadTextures(&cubeMap, skyTex); // load skybox texture
-
-	for (i = 0; i < 6; i++)
-	{
-		box[i] = LoadDataToModel(
-			vertices[i],
-			NULL,
-			texcoord[i],
-			NULL,
-			indices[i],
-			4,
-			6);
-	}
+	
+	// load skybox texture
+	loadTextures(&cubeMap, skyTex, box);
 
 	//Load Sphere Model
 	sphere = LoadModelPlus("Objects/groundsphere.obj");

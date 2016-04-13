@@ -3,12 +3,10 @@
 int texwidth;
 int texheight;
 
-//TextureData t[6];
 #define TEXTURE_OFFSET 0
 
 char *textureFileName[6] =
 {
-// 0-5: petomavar: Pretty realistic skybox.
   "Skyboxes/mystic_rt.tga",
   "Skyboxes/mystic_lf.tga",
   "Skyboxes/mystic_up.tga",
@@ -16,8 +14,96 @@ char *textureFileName[6] =
   "Skyboxes/mystic_bk.tga",
   "Skyboxes/mystic_ft.tga",
 };
+GLfloat vertices[6][6*3] =
+{
+	{ // +x
+		0.5,-0.5,-0.5,		// 1
+		0.5,0.5,-0.5,		// 2
+		0.5,0.5,0.5,			// 6
+		0.5,-0.5,0.5,		// 5
+	},
+	{ // -x
+		-0.5,-0.5,-0.5,		// 0 -0
+		-0.5,-0.5,0.5,		// 4 -1
+		-0.5,0.5,0.5,		// 7 -2
+		-0.5,0.5,-0.5,		// 3 -3
+	},
+	{ // +y
+		0.5,0.5,-0.5,		// 2 -0
+		-0.5,0.5,-0.5,		// 3 -1
+		-0.5,0.5,0.5,		// 7 -2
+		0.5,0.5,0.5,			// 6 -3
+	},
+	{ // -y
+		-0.5,-0.5,-0.5,		// 0
+		0.5,-0.5,-0.5,		// 1
+		0.5,-0.5,0.5,		// 5
+		-0.5,-0.5,0.5		// 4
+	},
+	{ // +z
+		-0.5,-0.5,0.5,		// 4
+		0.5,-0.5,0.5,		// 5
+		0.5,0.5,0.5,			// 6
+		-0.5,0.5,0.5,		// 7
+	},
+	{ // -z
+		-0.5,-0.5,-0.5,	// 0
+		-0.5,0.5,-0.5,		// 3
+		0.5,0.5,-0.5,		// 2
+		0.5,-0.5,-0.5,		// 1
+	}
+};
 
-void loadTextures(GLuint *cubemap, TextureData *t)
+GLfloat texcoord[6][6*2] =
+{
+	{
+		1.0, 1.0,
+		1.0, 0.0, // left OK
+		0.0, 0.0,
+		0.0, 1.0,
+	},
+	{
+		0.0, 1.0, // right OK
+		1.0, 1.0,
+		1.0, 0.0,
+		0.0, 0.0,
+	},
+	{
+		1.0, 0.0, // top OK
+		0.0, 0.0,
+		0.0, 1.0,
+		1.0, 1.0,
+	},
+	{
+		0.0, 1.0,
+		1.0, 1.0,
+		1.0, 0.0, // bottom
+		0.0, 0.0,
+	},
+	{
+		0.0, 1.0,
+		1.0, 1.0,
+		1.0, 0.0, // back OK
+		0.0, 0.0,
+	},
+	{
+		1.0, 1.0,
+		1.0, 0.0, // front OK
+		0.0, 0.0,
+		0.0, 1.0,
+	}
+};
+GLuint indices[6][6] =
+{
+	{0, 2, 1, 0, 3, 2},
+	{0, 2, 1, 0, 3, 2},
+	{0, 2, 1, 0, 3, 2},
+	{0, 2, 1, 0, 3, 2},
+	{0, 2, 1, 0, 3, 2},
+	{0, 2, 1, 0, 3, 2}
+};
+
+void loadTextures(GLuint *cubemap, TextureData *t, Model *box[6])
 {
 	int i;
 	
@@ -30,19 +116,20 @@ void loadTextures(GLuint *cubemap, TextureData *t)
 	for (i = 0; i < 6; i++)
 	{
 		printf("Loading texture %s\n", textureFileName[i+TEXTURE_OFFSET]);
-		LoadTGATexture(textureFileName[i+TEXTURE_OFFSET], &t[i]);
+		LoadTGATexture(textureFileName[i+TEXTURE_OFFSET], t + i);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 	// Load to cube map
 	glBindTexture(GL_TEXTURE_CUBE_MAP, *cubemap);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, t[0].w, t[0].h, 0, GL_RGBA, GL_UNSIGNED_BYTE, t[0].imageData);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, t[1].w, t[1].h, 0, GL_RGBA, GL_UNSIGNED_BYTE, t[1].imageData);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, t[2].w, t[2].h, 0, GL_RGBA, GL_UNSIGNED_BYTE, t[2].imageData);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, t[3].w, t[3].h, 0, GL_RGBA, GL_UNSIGNED_BYTE, t[3].imageData);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, t[4].w, t[4].h, 0, GL_RGBA, GL_UNSIGNED_BYTE, t[4].imageData);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, t[5].w, t[5].h, 0, GL_RGBA, GL_UNSIGNED_BYTE, t[5].imageData);
-  
+
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, &t[0].w, &t[0].h, 0, GL_RGBA, GL_UNSIGNED_BYTE, &t[0].imageData);
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, &t[1].w, &t[1].h, 0, GL_RGBA, GL_UNSIGNED_BYTE, &t[1].imageData);
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, &t[2].w, &t[2].h, 0, GL_RGBA, GL_UNSIGNED_BYTE, &t[2].imageData);
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, &t[3].w, &t[3].h, 0, GL_RGBA, GL_UNSIGNED_BYTE, &t[3].imageData);
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, &t[4].w, &t[4].h, 0, GL_RGBA, GL_UNSIGNED_BYTE, &t[4].imageData);
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, &t[5].w, &t[5].h, 0, GL_RGBA, GL_UNSIGNED_BYTE, &t[5].imageData);
+
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -52,6 +139,11 @@ void loadTextures(GLuint *cubemap, TextureData *t)
 // MIPMAPPING
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+	for (i = 0; i < 6; i++)
+	{
+		box[i] = LoadDataToModel(vertices[i],NULL,texcoord[i],NULL,indices[i],4,6);
+	}
 }
 
 
@@ -129,7 +221,6 @@ Model* GenerateTerrain(TextureData *tex)
 			normalArray[(x + z * tex->width)*3 + 2] = cross.z;
 
 	}
-	
 
 	// End of terrain generation
 	
