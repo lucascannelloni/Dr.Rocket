@@ -35,4 +35,5 @@ void main(void)
     vec3 wcNormal = mat3(mdlMatrix) * inNormal;
     reflectedView = reflect(viewDirectionInWorldCoord, normalize(wcNormal));
      */
+    
 }

@@ -50,10 +50,10 @@ void main(void)
     }
     else
     {
-       // outColor1 = mix(texture(cubeMap, normalize(reflectedView)), texture(tex1,texCoord),0.1);
-        //outColor2 = vec4(0.1*(diffuse + specular), 0.4*(diffuse + specular), 0.6*(diffuse + specular),1);
+     //   outColor1 = texture(cubeMap, normalize(reflectedView));
+       // outColor2 = vec4(0.1*(diffuse + specular), 0.4*(diffuse + specular), 0.6*(diffuse + specular),1);
 
-        outColor = vec4(0.3,0.4,0.7,0.8);//outColor1*outColor2;
+        outColor = vec4(0.3,0.5,0.7,0.5);//outColor1*outColor2;
     }
 
 }
