@@ -27,13 +27,13 @@ int texheight;
 GLfloat tiltAngle;
 
 // vertex array object
-Model *m, *m2, *tm, *skybox,*box[6],*rocketObject;
+Model *m, *m2, *tm, *skybox,*box[6],*rocketObject,*waterModel;
 
 // Reference to shader program
-GLuint program,programSky;
+GLuint program,programSky,programWater;
 GLuint tex1, tex2, cubeMap;
 TextureData ttex,water;
-TextureData skyTex[6] = {0,0,0,0,0,0};
+TextureData skyTex[6];// = {0,0,0,0,0,0};
 
 void init(void)
 {
@@ -49,6 +49,7 @@ void init(void)
 	// Load and compile shader
 	program = loadShaders("Shaders/terrain.vert", "Shaders/terrain.frag");
 	programSky = loadShaders("Shaders/skybox.vert","Shaders/skybox.frag");
+	programWater= loadShaders("Shaders/water.vert","Shaders/water.frag");
 
 	//TERRAIN
 	glUseProgram(program);
@@ -64,6 +65,12 @@ void init(void)
 	tm = GenerateTerrain(&ttex);
 	printError("init terrain");
 
+	//load water
+	LoadTGATextureData("waterlevel.tga", &water);
+	waterModel = GenerateTerrain(&water);
+	glUseProgram(programWater);
+	glUniformMatrix4fv(glGetUniformLocation(programWater, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
+	glUniform1i(glGetUniformLocation(programWater, "cubeMap"), 1); // Texture unit 0
 	
 	//SKYBOX
 	glUseProgram(programSky);
@@ -148,10 +155,28 @@ void display(void)
 	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
 
+
+	//----------
+	// WATER
+	//----------
+	glUseProgram(programWater);
+	glActiveTexture(GL_TEXTURE1); //IS THIS NESSESARY?
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
+	
+	//Transformation matrix for water
+
+	//send to shaders & draw
+	glUniformMatrix4fv(glGetUniformLocation(programWater, "mdlMatrix"), 1, GL_TRUE, camMatrix.m);
+	glUniformMatrix4fv(glGetUniformLocation(programWater, "camMatrix"), 1, GL_TRUE, modelView.m);
+//	glActiveTexture(GL_TEXTURE0);
+//	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
+	DrawModel(waterModel, programWater, "inPosition", "inNormal", 0);
+
 	// --------
 	// ROCKET
 	//---------
 	// translate and rotate Rocket
+	glUseProgram(program);
     mat4 rocketTrans = Mult(T(rocketPoint.x,rocketPoint.y,rocketPoint.z),rocketRotate);
 	mat4 rocketTotal = Mult(camMatrix, rocketTrans);
 	

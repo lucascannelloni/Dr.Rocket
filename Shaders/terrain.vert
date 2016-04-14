@@ -8,8 +8,6 @@ out vec3 transformedNormal;
 out vec4 vertexPoint;
 out vec3 exNormal;
 out vec3 pos;
-out vec3 reflectedView;
-
 
 uniform mat4 projMatrix;
 uniform mat4 mdlMatrix;
@@ -26,13 +24,5 @@ void main(void)
     
     vertexPoint = mdlMatrix*vec4(inPosition,1.0);
     exNormal = inNormal;
-    
-    
-    vec3 viewDirectionInViewCoord  = normalize(vec3(camMatrix * mdlMatrix * vec4(inPosition, 1.0)));
-    vec3 viewDirectionInWorldCoord = mat3(camMatrix) * viewDirectionInViewCoord;
-    
-    vec3 wcNormal = mat3(mdlMatrix) * inNormal;
-    reflectedView = reflect(viewDirectionInWorldCoord, normalize(wcNormal));
-     
     
 }
