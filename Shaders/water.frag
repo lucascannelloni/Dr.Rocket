@@ -10,5 +10,5 @@ uniform samplerCube cubeMap;
 
 void main(void)
 {
-    outColor = texture(cubeMap,normalize(reflectedView));
+    outColor = vec4(reflectedView,0.5);//texture(cubeMap,normalize(reflectedView));
 }

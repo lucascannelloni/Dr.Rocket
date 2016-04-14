@@ -16,6 +16,7 @@
 mat4 projectionMatrix;
 vec3 cam = {50, 20, 40};
 vec3 rocketPoint = {50, 20, 50};
+vec3 rocketVel = {0,0,0};
 vec3 cameraUp = {0,1,0};
 vec3 cameraFront;
 bool firstMouse = true;
@@ -104,12 +105,17 @@ void display(void)
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
+    
+    GLfloat gravity = 10.0f;
+    GLfloat gravVel = 0.000001f*t;
+    rocketVel.y = rocketVel.y-gravVel;
+    rocketPoint = VectorAdd(rocketPoint,rocketVel);
 	
 	mat4 total, modelView, camMatrix;
 	printError("pre display");
 
 	// Key handler for update of Rocket position and orientation, camera pos etc
-	mat4 rocketRotate = keyHandler(&cam,&cameraUp,tm, &rocketPoint);
+	mat4 rocketRotate = keyHandler(&cam,&cameraUp,tm, &rocketPoint, &rocketVel);
 	camMatrix = lookAt(cam.x, cam.y, cam.z,
 				rocketPoint.x, rocketPoint.y, rocketPoint.z,
 				cameraUp.x,cameraUp.y,cameraUp.z);
@@ -165,9 +171,13 @@ void display(void)
 	
 	//Transformation matrix for water
 
+    mat4 inverseCam = InvertMat4(camMatrix);
+    
 	//send to shaders & draw
-	glUniformMatrix4fv(glGetUniformLocation(programWater, "mdlMatrix"), 1, GL_TRUE, camMatrix.m);
-	glUniformMatrix4fv(glGetUniformLocation(programWater, "camMatrix"), 1, GL_TRUE, modelView.m);
+	glUniformMatrix4fv(glGetUniformLocation(programWater, "mdlMatrix"), 1, GL_TRUE, modelView.m);
+	glUniformMatrix4fv(glGetUniformLocation(programWater, "camMatrix"), 1, GL_TRUE, camMatrix.m);
+    glUniformMatrix4fv(glGetUniformLocation(programWater, "invCamMatrix"), 1, GL_TRUE, inverseCam.m);
+    glUniform3f(glGetUniformLocation(programWater, "cameraPos"), cam.x, cam.y, cam.z);
 //	glActiveTexture(GL_TEXTURE0);
 //	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
 	DrawModel(waterModel, programWater, "inPosition", "inNormal", 0);
@@ -233,6 +243,7 @@ void mouse(int x, int y)
     cameraFront.y = sin(pi*pitch/180);
     cameraFront.z = sin(pi*yaw/180) * cos(pi*pitch/180);
     cameraFront = Normalize(cameraFront);
+    cameraFront = ScalarMult(cameraFront,50);
     
     cam = VectorSub(rocketPoint,cameraFront);
 }

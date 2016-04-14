@@ -7,12 +7,19 @@ int texheight;
 
 char *textureFileName[6] =
 {
-  "Skyboxes/mystic_rt.tga",
+  /*"Skyboxes/mystic_rt.tga",
   "Skyboxes/mystic_lf.tga",
   "Skyboxes/mystic_up.tga",
   "Skyboxes/mystic_dn.tga",
   "Skyboxes/mystic_bk.tga",
-  "Skyboxes/mystic_ft.tga",
+  "Skyboxes/mystic_ft.tga",*/
+    
+    "Skyboxes/skyrender0001.tga",
+    "Skyboxes/skyrender0002.tga",
+    "Skyboxes/skyrender0003.tga",
+    "Skyboxes/skyrender0004.tga",
+    "Skyboxes/skyrender0005.tga",
+    "Skyboxes/skyrender0006.tga",
 };
 GLfloat vertices[6][6*3] =
 {
