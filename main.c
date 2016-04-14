@@ -32,7 +32,8 @@ Model *m, *m2, *tm, *skybox,*box[6],*rocketObject;
 // Reference to shader program
 GLuint program,programSky;
 GLuint tex1, tex2, cubeMap;
-TextureData ttex, skyTex[6],water;
+TextureData ttex,water;
+TextureData skyTex[6] = {0,0,0,0,0,0};
 
 void init(void)
 {
@@ -132,9 +133,10 @@ void display(void)
 	// TERRAIN
 	//----------
 	// send cubemap to terrain shaders as well (i think)
+    glUseProgram(program);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-	glUseProgram(program);
+	
 	//Transformation matrix for terrain
 	mat4 terrainTrans = T(0,-0.5,0);
 	total = Mult(camMatrix, terrainTrans);

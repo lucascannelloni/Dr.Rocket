@@ -7,7 +7,7 @@ in vec3 transformedNormal;
 in vec4 vertexPoint;
 in vec3 exNormal;
 in vec3 pos;
-//in vec3 reflectedView;
+in vec3 reflectedView;
 
 uniform sampler2D tex1;
 uniform sampler2D tex2;
@@ -41,7 +41,7 @@ void main(void)
     specular = pow(cosAng,specularExponent);
     //specular = 0;
     
-    if(pos.y > 1){
+    if(pos.y > 100){
     
     // Out Color
     outColor2 = mix(texture(tex1,texCoord),texture(tex2,texCoord),0.3);
@@ -50,10 +50,10 @@ void main(void)
     }
     else
     {
-     //   outColor1 = texture(cubeMap, normalize(reflectedView));
-       // outColor2 = vec4(0.1*(diffuse + specular), 0.4*(diffuse + specular), 0.6*(diffuse + specular),1);
+       outColor1 = texture(cubeMap, normalize(reflectedView));
+       outColor2 = vec4(0.1*(diffuse + specular), 0.4*(diffuse + specular), 0.6*(diffuse + specular),0.5);
 
-        outColor = vec4(0.3,0.5,0.7,0.5);//outColor1*outColor2;
+        outColor = outColor1;//*outColor2;
     }
 
 }
