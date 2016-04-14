@@ -2,13 +2,15 @@
 
 out vec4 outColor;
 
-in vec3 exNormal;
+in vec3 Normal;
+in vec3 Position;
 
-in vec3 reflectedView;
-
+uniform vec3 cameraPos;
 uniform samplerCube cubeMap;
 
 void main(void)
 {
-    outColor = texture(cubeMap,normalize(reflectedView));
+    vec3 I = normalize(Position - cameraPos);
+    vec3 R = reflect(I, normalize(Normal));
+    outColor = texture(cubeMap, R);
 }
