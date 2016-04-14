@@ -72,12 +72,6 @@ void init(void)
 	// load skybox texture
 	loadTextures(&cubeMap, skyTex, box);
 
-
-	//Load Sphere Model
-	sphere = LoadModelPlus("Objects/groundsphere.obj");
-    rocketObject = LoadModelPlus("Objects/AGM65.obj");
-//	skybox = LoadModelPlus("Objects/skybox.obj");
-
 	//Load Rocket Model
     rocketObject = LoadModelPlus("Objects/windmill-walls.obj");
 
