@@ -35,11 +35,9 @@ void main(void)
     //Specular
     vec3 eyeDir = -normalize(vec3(vertexPoint));
     vec3 reflectDir = reflect(-normLight,normNormals);
-   // vec3 halfway = normalize(eyeDir + normLight);
-    
+
     cosAng = max(0.0,dot(reflectDir,eyeDir));
     specular = pow(cosAng,specularExponent);
-    //specular = 0;
     
     if(pos.y > 100){
     
