@@ -71,7 +71,8 @@ void init(void)
 	waterModel = GenerateTerrain(&water);
 	glUseProgram(programWater);
 	glUniformMatrix4fv(glGetUniformLocation(programWater, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
-	glUniform1i(glGetUniformLocation(programWater, "cubeMap"), 1); // Texture unit 0
+    glActiveTexture(GL_TEXTURE1);
+	glUniform1i(glGetUniformLocation(programWater, "cubeMap"), 1); // Texture unit 1
 	
 	//SKYBOX
 	glUseProgram(programSky);
@@ -79,6 +80,7 @@ void init(void)
 	glUniform1i(glGetUniformLocation(programSky, "skyTex"), 0); // Texture unit 0
 	
 	// load skybox texture
+    glActiveTexture(GL_TEXTURE0);
 	loadTextures(&cubeMap, skyTex, box);
 
 	//Load Rocket Model
@@ -165,7 +167,9 @@ void display(void)
 	//----------
 	// WATER
 	//----------
-	glUseProgram(programWater);
+    glUseProgram(programWater);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_TEXTURE_CUBE_MAP);
 	glActiveTexture(GL_TEXTURE1); //IS THIS NESSESARY?
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
 	

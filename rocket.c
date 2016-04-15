@@ -12,14 +12,20 @@ mat4 keyHandler(vec3* cam, vec3* cameraUp, Model* tm, vec3* rocketPoint,vec3* ro
     GLfloat tiltSpeed = 0.05f;
     
     vec3 orthRocketVect = CrossProduct(dirVect, *cameraUp);
-
-   
     
-    if(glutKeyIsDown('e'))
+    float groundHeight = heightCalc(rocketPoint->x, rocketPoint->z, tm);
+    float rocketOffset = 10;
+    if (rocketPoint->y<groundHeight+rocketOffset)
+    {
+        rocketPoint->y =groundHeight+rocketOffset;
+        rocketVel->y = -rocketVel->y;
+    }
+    
+    if(glutKeyIsDown('d'))
     {
         tiltAngle = tiltAngle+tiltSpeed;
     }
-    if(glutKeyIsDown('d'))
+    if(glutKeyIsDown('e'))
     {
         tiltAngle = tiltAngle-tiltSpeed;
     }
@@ -33,9 +39,9 @@ mat4 keyHandler(vec3* cam, vec3* cameraUp, Model* tm, vec3* rocketPoint,vec3* ro
     {
         *rocketPoint = VectorAdd(*rocketPoint,thrustDir);
     }
-    if(glutKeyIsDown('g'))
+    if(glutKeyIsDown('f'))
     {
-        *rocketVel = VectorAdd(*rocketVel,ScalarMult(thrustDir,0.05));
+        *rocketVel = VectorAdd(*rocketVel,ScalarMult(thrustDir,0.07));
     }
     
     //*cam = VectorSub(*rocketPoint,ScalarMult(dirVect,50));

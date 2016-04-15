@@ -7,19 +7,19 @@ int texheight;
 
 char *textureFileName[6] =
 {
-  /*"Skyboxes/mystic_rt.tga",
+  "Skyboxes/mystic_rt.tga",
   "Skyboxes/mystic_lf.tga",
   "Skyboxes/mystic_up.tga",
   "Skyboxes/mystic_dn.tga",
   "Skyboxes/mystic_bk.tga",
-  "Skyboxes/mystic_ft.tga",*/
+  "Skyboxes/mystic_ft.tga",
     
-    "Skyboxes/skyrender0001.tga",
+   /* "Skyboxes/skyrender0001.tga",
     "Skyboxes/skyrender0002.tga",
     "Skyboxes/skyrender0003.tga",
     "Skyboxes/skyrender0004.tga",
     "Skyboxes/skyrender0005.tga",
-    "Skyboxes/skyrender0006.tga",
+    "Skyboxes/skyrender0006.tga",*/
 };
 GLfloat vertices[6][6*3] =
 {
@@ -113,9 +113,14 @@ GLuint indices[6][6] =
 void loadTextures(GLuint *cubemap, TextureData *t, Model *box[6])
 {
 	int i;
-	
+
+    for (i = 0; i < 6; i++)
+    {
+        box[i] = LoadDataToModel(vertices[i],NULL,texcoord[i],NULL,indices[i],4,6);
+    }
+    
 	glGenTextures(1, cubemap);			// Generate OpenGL texture IDs
-	glActiveTexture(GL_TEXTURE0); // Just make sure the texture unit match
+	//glActiveTexture(GL_TEXTURE0); // Just make sure the texture unit match
 	
 	// Note all operations on GL_TEXTURE_CUBE_MAP, not GL_TEXTURE_2D
 	
@@ -151,10 +156,7 @@ void loadTextures(GLuint *cubemap, TextureData *t, Model *box[6])
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
-	for (i = 0; i < 6; i++)
-	{
-		box[i] = LoadDataToModel(vertices[i],NULL,texcoord[i],NULL,indices[i],4,6);
-	}
+	
 }
 
 
