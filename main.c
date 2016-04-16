@@ -5,6 +5,7 @@
 	// Linking hint for Lightweight IDE
 	// uses framework Cocoa
 #endif
+
 #include "givenFiles/MicroGlut.h"
 #include "givenFiles/GL_utilities.h"
 #include "givenFiles/VectorUtils3.h"
@@ -34,11 +35,10 @@ Model *m, *m2, *tm, *skybox,*box[6],*rocketObject,*waterModel;
 GLuint program,programSky,programWater;
 GLuint tex1, tex2, cubeMap;
 TextureData ttex,water;
-TextureData skyTex[6];// = {0,0,0,0,0,0};
+TextureData skyTex[6];
 
 void init(void)
 {
-	int i;
 	// GL inits
 	glClearColor(0.2,0.2,0.5,0);
 	glEnable(GL_DEPTH_TEST);
@@ -57,7 +57,6 @@ void init(void)
 	printError("init shader");
 	glUniformMatrix4fv(glGetUniformLocation(program, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 	glUniform1i(glGetUniformLocation(program, "tex1"), 0); // Texture unit 0
-	glUniform1i(glGetUniformLocation(program, "cubeMap"), 1); // Texture unit 0
 
 	LoadTGATextureSimple("dirt.tga", &tex1);
 
@@ -72,6 +71,7 @@ void init(void)
 	glUseProgram(programWater);
 	glUniformMatrix4fv(glGetUniformLocation(programWater, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
     glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
 	glUniform1i(glGetUniformLocation(programWater, "cubeMap"), 1); // Texture unit 1
 	
 	//SKYBOX
@@ -108,9 +108,13 @@ void display(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
     
-    GLfloat gravity = 10.0f;
-    GLfloat gravVel = 0.000001f*t;
-    rocketVel.y = rocketVel.y-gravVel;
+    GLfloat gravVel = 0.05f;
+    float rocketOffset = 10;
+    if (rocketPoint.y > rocketOffset)
+    {
+    	rocketVel.y = rocketVel.y-gravVel;
+    }
+
     rocketPoint = VectorAdd(rocketPoint,rocketVel);
 	
 	mat4 total, modelView, camMatrix;
@@ -143,7 +147,7 @@ void display(void)
 		DrawModel(box[i], programSky, "inPosition", NULL, "inTexCoord");
 	}
 	glEnable(GL_DEPTH_TEST);
-
+	
 	//----------
 	// TERRAIN
 	//----------
@@ -156,6 +160,7 @@ void display(void)
 	mat4 terrainTrans = T(0,-0.5,0);
 	total = Mult(camMatrix, terrainTrans);
 
+
 	//send to shaders & draw
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
 	glUniformMatrix4fv(glGetUniformLocation(program, "camMatrix"), 1, GL_TRUE, modelView.m);
@@ -167,24 +172,29 @@ void display(void)
 	//----------
 	// WATER
 	//----------
+
     glUseProgram(programWater);
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_TEXTURE_CUBE_MAP);
 	glActiveTexture(GL_TEXTURE1); //IS THIS NESSESARY?
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-	
+
 	//Transformation matrix for water
 
-    mat4 inverseCam = InvertMat4(camMatrix);
-    
+    mat3 inverseCam = InvertMat3(mat4tomat3(camMatrix));
+
+	mat4 transCam = T(cam.x,cam.y,cam.z);
+
+	mat4 waterModelView = T(0,-0.4,0);
+
 	//send to shaders & draw
-	glUniformMatrix4fv(glGetUniformLocation(programWater, "mdlMatrix"), 1, GL_TRUE, modelView.m);
+	glUniformMatrix4fv(glGetUniformLocation(programWater, "mdlMatrix"), 1, GL_TRUE, waterModelView.m);
 	glUniformMatrix4fv(glGetUniformLocation(programWater, "camMatrix"), 1, GL_TRUE, camMatrix.m);
-    glUniformMatrix4fv(glGetUniformLocation(programWater, "invCamMatrix"), 1, GL_TRUE, inverseCam.m);
-    glUniform3f(glGetUniformLocation(programWater, "cameraPos"), cam.x, cam.y, cam.z);
+	glUniformMatrix4fv(glGetUniformLocation(programWater, "transCam"), 1, GL_TRUE, transCam.m);
+    glUniformMatrix3fv(glGetUniformLocation(programWater, "invCamMatrix"), 1, GL_TRUE, inverseCam.m);
+ //   glUniform3f(glGetUniformLocation(programWater, "cameraPos"), cam.x, cam.y, cam.z);
 //	glActiveTexture(GL_TEXTURE0);
 //	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
-	DrawModel(waterModel, programWater, "inPosition", "inNormal", 0);
+	DrawModel(waterModel, programWater, "inPosition", "inNormal", NULL);
+
 
 	// --------
 	// ROCKET
@@ -195,15 +205,14 @@ void display(void)
 	mat4 rocketTotal = Mult(camMatrix, rocketTrans);
 	
 	// bind texture, send to shader & draw model
-	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE0);
+
 	glBindTexture(GL_TEXTURE_2D, tex1);
+
 	glUniform1i(glGetUniformLocation(program, "tex1"), 0);
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, rocketTotal.m);
 	glUniformMatrix4fv(glGetUniformLocation(program, "camMatrix"), 1, GL_TRUE, camMatrix.m);
 	DrawModel(rocketObject, program, "inPosition", "inNormal", "inTexCoord");
-
-	glDisable(GL_TEXTURE_2D);
 	
 	printError("display 2");
 	

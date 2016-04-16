@@ -1,7 +1,11 @@
 #include "world.h"
+#include <stdio.h>
+#include <string.h>
 
 int texwidth;
 int texheight;
+
+
 
 #define TEXTURE_OFFSET 0
 
@@ -13,13 +17,14 @@ char *textureFileName[6] =
   "Skyboxes/mystic_dn.tga",
   "Skyboxes/mystic_bk.tga",
   "Skyboxes/mystic_ft.tga",
-    
-   /* "Skyboxes/skyrender0001.tga",
+    /*
+    "Skyboxes/skyrender0001.tga",
     "Skyboxes/skyrender0002.tga",
     "Skyboxes/skyrender0003.tga",
     "Skyboxes/skyrender0004.tga",
     "Skyboxes/skyrender0005.tga",
-    "Skyboxes/skyrender0006.tga",*/
+    "Skyboxes/skyrender0006.tga",
+    */
 };
 GLfloat vertices[6][6*3] =
 {
@@ -116,15 +121,11 @@ void loadTextures(GLuint *cubemap, TextureData *t, Model *box[6])
 
     for (i = 0; i < 6; i++)
     {
-        box[i] = LoadDataToModel(vertices[i],NULL,texcoord[i],NULL,indices[i],4,6);
+        *(&box[i]) = LoadDataToModel(vertices[i],NULL,texcoord[i],NULL,indices[i],4,6);
     }
-    
-	glGenTextures(1, cubemap);			// Generate OpenGL texture IDs
-	//glActiveTexture(GL_TEXTURE0); // Just make sure the texture unit match
-	
-	// Note all operations on GL_TEXTURE_CUBE_MAP, not GL_TEXTURE_2D
-	
-	// Load texture data and create ordinary texture objects (for skybox)
+
+	glGenTextures(1, cubemap);
+
 	for (i = 0; i < 6; i++)
 	{
 		printf("Loading texture %s\n", textureFileName[i+TEXTURE_OFFSET]);
@@ -135,16 +136,13 @@ void loadTextures(GLuint *cubemap, TextureData *t, Model *box[6])
 	// Load to cube map
 	glBindTexture(GL_TEXTURE_CUBE_MAP, *cubemap);
 
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, 1);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 1);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, 1);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, t->w, t->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, t->imageData);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, (t+1)->w, (t+1)->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (t+1)->imageData);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, (t+2)->w, (t+2)->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (t+2)->imageData);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, (t+3)->w, (t+3)->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (t+3)->imageData);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, (t+4)->w, (t+4)->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (t+4)->imageData);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, (t+5)->w, (t+5)->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (t+5)->imageData);
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, *(&t[0].width), *(&t[0].height), 0, GL_RGBA, GL_UNSIGNED_BYTE, *(&t[0].imageData));
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, *(&t[1].width), *(&t[1].height), 0, GL_RGBA, GL_UNSIGNED_BYTE, *(&t[1].imageData));
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, *(&t[2].width), *(&t[2].height), 0, GL_RGBA, GL_UNSIGNED_BYTE, *(&t[2].imageData));
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, *(&t[3].width), *(&t[3].height), 0, GL_RGBA, GL_UNSIGNED_BYTE, *(&t[3].imageData));
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, *(&t[4].width), *(&t[4].height), 0, GL_RGBA, GL_UNSIGNED_BYTE, *(&t[4].imageData));
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, *(&t[5].width), *(&t[5].height), 0, GL_RGBA, GL_UNSIGNED_BYTE, *(&t[5].imageData));
+
 
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -155,7 +153,6 @@ void loadTextures(GLuint *cubemap, TextureData *t, Model *box[6])
 // MIPMAPPING
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-
 	
 }
 
