@@ -30,8 +30,20 @@ void main(void)
     
     // TEST UNDER DETTA
     
-    vec3 viewDirectionInWorldCoord = vec3(transCam * mdlMatrix * vec4(inPosition, 1.0));
+   // vec3 viewDirectionInWorldCoord = vec3(transCam * mdlMatrix * vec4(inPosition, 1.0));
     
+   // vec3 wcNormal = mat3(mdlMatrix) * inNormal;
+    //reflectedView = reflect(viewDirectionInWorldCoord, normalize(wcNormal));
+    
+    //
+    
+    vec3 posInViewCoord = vec3(camMatrix * mdlMatrix * vec4(inPosition, 1.0));
+    vec3 viewDirectionInViewCoord = normalize(posInViewCoord);
+ 
+    vec3 viewDirectionInWorldCoord = inverse(mat3(camMatrix)) * viewDirectionInViewCoord;
+    
+ 
     vec3 wcNormal = mat3(mdlMatrix) * inNormal;
+  
     reflectedView = reflect(viewDirectionInWorldCoord, normalize(wcNormal));
 }
