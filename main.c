@@ -190,7 +190,7 @@ void display(void)
 	glUniformMatrix4fv(glGetUniformLocation(programWater, "camMatrix"), 1, GL_TRUE, camMatrix.m);
 	glUniformMatrix4fv(glGetUniformLocation(programWater, "transCam"), 1, GL_TRUE, transCam.m);
     glUniformMatrix3fv(glGetUniformLocation(programWater, "invCamMatrix"), 1, GL_TRUE, inverseCam.m);
- //   glUniform3f(glGetUniformLocation(programWater, "cameraPos"), cam.x, cam.y, cam.z);
+    glUniform1f(glGetUniformLocation(programWater, "time"), t);
 //	glActiveTexture(GL_TEXTURE0);
 //	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
 	DrawModel(waterModel, programWater, "inPosition", "inNormal", NULL);
