@@ -22,6 +22,6 @@ void main(void)
     
     // test
     
-   // outColor = texture(cubeMap, normalize(reflectedView));
+    outColor = texture(cubeMap, normalize(reflectedView));
    //outColor = vec4(reflectedView,1);
 }
