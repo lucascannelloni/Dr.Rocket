@@ -45,7 +45,7 @@ void init(void)
 	glDisable(GL_CULL_FACE);
 	printError("GL inits");
 
-	projectionMatrix = frustum(-0.1, 0.1, -0.1, 0.1, 0.2, 700.0);
+	projectionMatrix = frustum(-0.1, 0.1, -0.1, 0.1, 0.2, 1000.0);
 
 	// Load and compile shader
 	program = loadShaders("Shaders/terrain.vert", "Shaders/terrain.frag");
@@ -189,7 +189,7 @@ void display(void)
 	glUniformMatrix4fv(glGetUniformLocation(programWater, "mdlMatrix"), 1, GL_TRUE, waterModelView.m);
 	glUniformMatrix4fv(glGetUniformLocation(programWater, "camMatrix"), 1, GL_TRUE, camMatrix.m);
 	glUniformMatrix4fv(glGetUniformLocation(programWater, "transCam"), 1, GL_TRUE, transCam.m);
-    glUniformMatrix3fv(glGetUniformLocation(programWater, "invCamMatrix"), 1, GL_TRUE, inverseCam.m);
+    glUniformMatrix3fv(glGetUniformLocation(programWater, "InvCamMatrix"), 1, GL_TRUE, inverseCam.m);
     glUniform1f(glGetUniformLocation(programWater, "time"), t);
 //	glActiveTexture(GL_TEXTURE0);
 //	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
