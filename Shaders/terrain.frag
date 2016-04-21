@@ -38,16 +38,13 @@ void main(void)
     cosAng = max(0.0,dot(reflectDir,eyeDir));
     specular = pow(cosAng,specularExponent);
     
-    if(pos.y > 5){
+
     
     // Out Color
     outColor2 = mix(texture(tex1,texCoord),texture(tex2,texCoord),0.3);
     outColor1 = vec4(0.5*(diffuse + specular), 0.5*(diffuse + specular), 0.5*(diffuse + specular),1);
     outColor = outColor1*outColor2;
-    }
-    else
-    {
-        outColor = vec4(0.2,0.6,0.8,0.3);
-    }
+
+
 
 }

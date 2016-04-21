@@ -177,7 +177,7 @@ Model* GenerateTerrain(TextureData *tex)
 		{
 // Vertex array. You need to scale this properly
 			vertexArray[(x + z * tex->width)*3 + 0] = x / 1.0;
-			vertexArray[(x + z * tex->width)*3 + 1] = tex->imageData[(x + z * tex->width) * (tex->bpp/8)] / 10.0;
+			vertexArray[(x + z * tex->width)*3 + 1] = tex->imageData[(x + z * tex->width) * (tex->bpp/8)] / 5.0;
 			vertexArray[(x + z * tex->width)*3 + 2] = z / 1.0;
 // Normal vectors. You need to calculate these.
 			normalArray[(x + z * tex->width)*3 + 0] = 0.0;
