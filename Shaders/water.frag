@@ -4,6 +4,7 @@ out vec4 outColor;
 
 uniform vec3 cameraPos;
 uniform samplerCube cubeMap;
+uniform float time;
 
 //TEST NEDAN
 

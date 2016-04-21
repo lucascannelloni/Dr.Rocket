@@ -8,8 +8,7 @@ in vec4 vertexPoint;
 in vec3 exNormal;
 in vec3 pos;
 
-uniform sampler2D tex1;
-uniform sampler2D tex2;
+uniform sampler2D texRocket;
 uniform samplerCube cubeMap;
 uniform mat4 mdlMatrix;
 
@@ -40,9 +39,9 @@ void main(void)
 
     
     // Out Color
-    outColor2 = mix(texture(tex1,texCoord),texture(tex2,texCoord),0.3);
+    outColor2 = texture(texRocket,texCoord);
     outColor1 = vec4(0.5*(diffuse + specular), 0.5*(diffuse + specular), 0.5*(diffuse + specular),1);
-    outColor = outColor1*outColor2;
+    outColor = outColor2;//outColor1*outColor2;
 
 
 }

@@ -16,7 +16,7 @@
 
 mat4 projectionMatrix;
 vec3 cam = {50, 20, 40};
-vec3 rocketPoint = {50, 20, 50};
+vec3 rocketPoint = {50, 500, 50};
 vec3 rocketVel = {0,0,0};
 vec3 cameraUp = {0,1,0};
 vec3 cameraFront;
@@ -32,8 +32,8 @@ GLfloat tiltAngle;
 Model *m, *m2, *tm, *skybox,*box[6],*rocketObject,*waterModel;
 
 // Reference to shader program
-GLuint program,programSky,programWater;
-GLuint tex1, tex2, cubeMap;
+GLuint program,programSky,programWater, programRocket;
+GLuint tex1, tex2, cubeMap,texRocket;
 TextureData ttex,water;
 TextureData skyTex[6];
 
@@ -49,6 +49,7 @@ void init(void)
 
 	// Load and compile shader
 	program = loadShaders("Shaders/terrain.vert", "Shaders/terrain.frag");
+    programRocket = loadShaders("Shaders/rocket.vert", "Shaders/rocket.frag");
 	programSky = loadShaders("Shaders/skybox.vert","Shaders/skybox.frag");
 	programWater= loadShaders("Shaders/water.vert","Shaders/water.frag");
 
@@ -69,6 +70,7 @@ void init(void)
 	LoadTGATextureData("waterlevel.tga", &water);
 	waterModel = GenerateTerrain(&water);
 	glUseProgram(programWater);
+    
 	glUniformMatrix4fv(glGetUniformLocation(programWater, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
@@ -83,8 +85,14 @@ void init(void)
     glActiveTexture(GL_TEXTURE0);
 	loadTextures(&cubeMap, skyTex, box);
 
-	//Load Rocket Model
-    rocketObject = LoadModelPlus("Objects/windmill-walls.obj");
+	//ROCKET
+    //Load Rocket Model
+    glUseProgram(programRocket);
+    glActiveTexture(GL_TEXTURE0);
+    rocketObject = LoadModelPlus("Objects/redstoneRocket.obj");
+    glUniform1i(glGetUniformLocation(programRocket, "texRocket"), 0); // Texture unit 0
+    glUniformMatrix4fv(glGetUniformLocation(programRocket, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
+    LoadTGATextureSimple("grass.tga", &texRocket);
 
 }
 
@@ -173,6 +181,9 @@ void display(void)
 	// WATER
 	//----------
 
+    glEnable (GL_BLEND);
+    glBlendFunc (GL_ONE, GL_ONE);
+    
     glUseProgram(programWater);
 	glActiveTexture(GL_TEXTURE1); //IS THIS NESSESARY?
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
@@ -184,8 +195,11 @@ void display(void)
 	mat4 transCam = T(cam.x,cam.y,cam.z);
 
 	mat4 waterModelView = T(0,-0.4,0);
+    
+    mat4 rotationWater = Rx(sin(t));
 
 	//send to shaders & draw
+    glUniformMatrix4fv(glGetUniformLocation(programWater, "rotMatrix"), 1, GL_TRUE, rotationWater.m);
 	glUniformMatrix4fv(glGetUniformLocation(programWater, "mdlMatrix"), 1, GL_TRUE, waterModelView.m);
 	glUniformMatrix4fv(glGetUniformLocation(programWater, "camMatrix"), 1, GL_TRUE, camMatrix.m);
 	glUniformMatrix4fv(glGetUniformLocation(programWater, "transCam"), 1, GL_TRUE, transCam.m);
@@ -195,24 +209,27 @@ void display(void)
 //	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
 	DrawModel(waterModel, programWater, "inPosition", "inNormal", NULL);
 
-
+ glDisable (GL_BLEND);
+    
 	// --------
 	// ROCKET
 	//---------
 	// translate and rotate Rocket
-	glUseProgram(program);
+    mat4 scaleRocket = S(0.5,0.25,0.5);
+	glUseProgram(programRocket);
     mat4 rocketTrans = Mult(T(rocketPoint.x,rocketPoint.y,rocketPoint.z),rocketRotate);
 	mat4 rocketTotal = Mult(camMatrix, rocketTrans);
+    rocketTotal = Mult(rocketTotal,scaleRocket);
 	
 	// bind texture, send to shader & draw model
 	glActiveTexture(GL_TEXTURE0);
 
-	glBindTexture(GL_TEXTURE_2D, tex1);
+	glBindTexture(GL_TEXTURE_2D, texRocket );
 
-	glUniform1i(glGetUniformLocation(program, "tex1"), 0);
-	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, rocketTotal.m);
-	glUniformMatrix4fv(glGetUniformLocation(program, "camMatrix"), 1, GL_TRUE, camMatrix.m);
-	DrawModel(rocketObject, program, "inPosition", "inNormal", "inTexCoord");
+	glUniform1i(glGetUniformLocation(programRocket, "texRocket"), 0);
+	glUniformMatrix4fv(glGetUniformLocation(programRocket, "mdlMatrix"), 1, GL_TRUE, rocketTotal.m);
+	glUniformMatrix4fv(glGetUniformLocation(programRocket, "camMatrix"), 1, GL_TRUE, camMatrix.m);
+	DrawModel(rocketObject, programRocket, "inPosition", "inNormal", "inTexCoord");
 	
 	printError("display 2");
 	

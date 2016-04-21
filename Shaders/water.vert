@@ -9,6 +9,7 @@ uniform mat4 camMatrix;
 uniform mat4 transCam;
 uniform mat3 InvCamMatrix;
 uniform float time;
+uniform mat4 rotMatrix;
 
 out vec3 reflectedView;
 
@@ -22,8 +23,8 @@ void main(void)
     vec3 viewDirectionInViewCoord = normalize(posInViewCoord);
  
     vec3 viewDirectionInWorldCoord = InvCamMatrix * viewDirectionInViewCoord;
-    
-    vec3 wcNormal = mat3(mdlMatrix) * inNormal;
+    vec3 waveNormal = inNormal * mat3(rotMatrix);
+    vec3 wcNormal = mat3(mdlMatrix) * waveNormal;
   
     reflectedView = reflect(viewDirectionInWorldCoord, normalize(wcNormal));
 }

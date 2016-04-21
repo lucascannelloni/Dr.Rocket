@@ -5,14 +5,8 @@ in vec2 texCoord;
 in vec3 transformedNormal;
 in vec4 reflectPoint;
 
-uniform sampler2D tex;
-uniform sampler2D texUnit2;
+uniform sampler2D texRocket;
 
-uniform vec3 lightSourcesDirPosArr[4];
-uniform vec3 lightSourcesColorArr[4];
-
-uniform float specularExponent[4];
-uniform bool isDirectional[4];
 uniform mat4 camMatrix;
 
 
@@ -29,8 +23,7 @@ void main(void)
     
     viewDir = normalize(-vec3(reflectPoint));
     
-    tmp_Colors = texture(tex, texCoord);
-    tmp_Colors2 = texture(texUnit2, texCoord);
+    tmp_Colors = texture(texRocket , texCoord);
     
     for(int i=0;i<4;i++)
     {
@@ -68,12 +61,9 @@ void main(void)
 
     
     shading = diffuse + specular;
-    
-   // shading = shading+tmp_Colors+tmp_Colors2;
-    out_Colors = vec4(shading,1)*tmp_Colors;//mix(tmp_Colors,tmp_Colors2,0.5);
 
-    
-//    out_Colors = vec4(diffuseRed,diffuseGreen,diffuseBlue,diffuseWhite);
-    //out_Colors =texture(texUnit, texCoord)*shadered;
+    out_Colors = vec4(shading,1)*tmp_Colors;
+
+
 }
 
