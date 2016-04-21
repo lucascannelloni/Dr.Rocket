@@ -10,7 +10,6 @@ uniform mat4 camMatrix;
 uniform mat4 transCam;
 uniform mat3 InvCamMatrix;
 uniform float time;
-uniform mat4 rotMatrix;
 
 out vec3 reflectedView;
 out vec2 texCoord;
@@ -26,10 +25,9 @@ void main(void)
     //Reflect skybox in water
     vec3 posInViewCoord = vec3(camMatrix * mdlMatrix * vec4(inPosition, 1.0));
     vec3 viewDirectionInViewCoord = normalize(posInViewCoord);
- 
     vec3 viewDirectionInWorldCoord = InvCamMatrix * viewDirectionInViewCoord;
-    vec3 waveNormal = inNormal * mat3(rotMatrix);
-    vec3 wcNormal = mat3(mdlMatrix) * waveNormal;
+
+    vec3 wcNormal = mat3(mdlMatrix) * inNormal;
   
     reflectedView = reflect(viewDirectionInWorldCoord, normalize(wcNormal));
     

@@ -8,10 +8,6 @@ uniform float time;
 
 
 in vec2 texCoord;
-
-
-//TEST NEDAN
-
 in vec3 reflectedView;
 
 void main(void)

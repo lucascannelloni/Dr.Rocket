@@ -60,6 +60,7 @@ void init(void)
 	glUniform1i(glGetUniformLocation(program, "tex1"), 0); // Texture unit 0
 
 	LoadTGATextureSimple("dirt.tga", &tex1);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 
 	// Load terrain data
 	LoadTGATextureData("newTerrain.tga", &ttex);
