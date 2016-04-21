@@ -62,7 +62,7 @@ void init(void)
 	LoadTGATextureSimple("dirt.tga", &tex1);
 
 	// Load terrain data
-	LoadTGATextureData("water.tga", &ttex);
+	LoadTGATextureData("newTerrain.tga", &ttex);
 	tm = GenerateTerrain(&ttex);
 	printError("init terrain");
 
@@ -165,7 +165,7 @@ void display(void)
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
 	
 	//Transformation matrix for terrain
-	mat4 terrainTrans = T(0,-0.5,0);
+	mat4 terrainTrans = T(0,0,0);
 	total = Mult(camMatrix, terrainTrans);
 
 
@@ -194,12 +194,13 @@ void display(void)
 
 	mat4 transCam = T(cam.x,cam.y,cam.z);
 
-	mat4 waterModelView = T(0,-0.4,0);
-    
-    mat4 rotationWater = Rx(sin(t));
+
+	mat4 waterModelView = T(0,-10,0);
 
 	//send to shaders & draw
-    glUniformMatrix4fv(glGetUniformLocation(programWater, "rotMatrix"), 1, GL_TRUE, rotationWater.m);
+	glEnable (GL_BLEND);
+	glBlendFunc (GL_ONE, GL_ONE);
+
 	glUniformMatrix4fv(glGetUniformLocation(programWater, "mdlMatrix"), 1, GL_TRUE, waterModelView.m);
 	glUniformMatrix4fv(glGetUniformLocation(programWater, "camMatrix"), 1, GL_TRUE, camMatrix.m);
 	glUniformMatrix4fv(glGetUniformLocation(programWater, "transCam"), 1, GL_TRUE, transCam.m);
@@ -207,10 +208,11 @@ void display(void)
     glUniform1f(glGetUniformLocation(programWater, "time"), t);
 //	glActiveTexture(GL_TEXTURE0);
 //	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
-	DrawModel(waterModel, programWater, "inPosition", "inNormal", NULL);
 
- glDisable (GL_BLEND);
-    
+	DrawModel(waterModel, programWater, "inPosition", "inNormal", "inTexCoord");
+	glDisable(GL_BLEND);
+
+
 	// --------
 	// ROCKET
 	//---------
