@@ -16,7 +16,7 @@
 
 mat4 projectionMatrix;
 vec3 cam = {50, 20, 40};
-vec3 rocketPoint = {50, 500, 50};
+vec3 rocketPoint = {70, 50, 50};
 vec3 rocketVel = {0,0,0};
 vec3 cameraUp = {0,1,0};
 vec3 cameraFront;
@@ -24,6 +24,8 @@ bool firstMouse = true;
 int lastX,lastY;
 float pi = 3.1415;
 float yaw, pitch;
+float waveSpeed = 0.01f;
+float moveFactor = 0;
 int texwidth;
 int texheight;
 GLfloat tiltAngle;
@@ -33,7 +35,7 @@ Model *m, *m2, *tm, *skybox,*box[6],*rocketObject,*waterModel;
 
 // Reference to shader program
 GLuint program,programSky,programWater, programRocket;
-GLuint tex1, tex2, cubeMap,texRocket;
+GLuint tex1, tex2, cubeMap,texRocket,dudvTex,NormalTex,refractTex;
 TextureData ttex,water;
 TextureData skyTex[6];
 
@@ -67,7 +69,7 @@ void init(void)
 	tm = GenerateTerrain(&ttex);
 	printError("init terrain");
 
-	//load water
+	//WATER
 	LoadTGATextureData("waterlevel.tga", &water);
 	waterModel = GenerateTerrain(&water);
 	glUseProgram(programWater);
@@ -77,6 +79,18 @@ void init(void)
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
 	glUniform1i(glGetUniformLocation(programWater, "cubeMap"), 1); // Texture unit 1
 	
+	glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, refractTex);
+	glUniform1i(glGetUniformLocation(programWater, "refractTex"), 0);
+
+	LoadTGATextureSimple("waterDUDV.tga", &dudvTex);
+	glActiveTexture(GL_TEXTURE2);
+	glUniform1i(glGetUniformLocation(programWater, "dudvMap"), 2);
+
+	LoadTGATextureSimple("normalMap.tga", &NormalTex);
+	glActiveTexture(GL_TEXTURE3);
+	glUniform1i(glGetUniformLocation(programWater, "normalMap"), 3);
+
 	//SKYBOX
 	glUseProgram(programSky);
 	glUniformMatrix4fv(glGetUniformLocation(programSky, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
@@ -182,8 +196,8 @@ void display(void)
 	// WATER
 	//----------
 
-    glEnable (GL_BLEND);
-    glBlendFunc (GL_ONE, GL_ONE);
+    //glEnable (GL_BLEND);
+    //glBlendFunc (GL_ONE, GL_ONE);
     
     glUseProgram(programWater);
 	glActiveTexture(GL_TEXTURE1); //IS THIS NESSESARY?
@@ -192,26 +206,31 @@ void display(void)
 	//Transformation matrix for water
 
     mat3 inverseCam = InvertMat3(mat4tomat3(camMatrix));
-
 	mat4 transCam = T(cam.x,cam.y,cam.z);
-
-
 	mat4 waterModelView = T(0,-10,0);
 
+	moveFactor = moveFactor + waveSpeed*t;
+	moveFactor = fmod(moveFactor,1);
+
 	//send to shaders & draw
-	glEnable (GL_BLEND);
-	glBlendFunc (GL_ONE, GL_ONE);
+	//glEnable (GL_BLEND);
+	//glBlendFunc (GL_ONE, GL_ONE);
 
 	glUniformMatrix4fv(glGetUniformLocation(programWater, "mdlMatrix"), 1, GL_TRUE, waterModelView.m);
 	glUniformMatrix4fv(glGetUniformLocation(programWater, "camMatrix"), 1, GL_TRUE, camMatrix.m);
 	glUniformMatrix4fv(glGetUniformLocation(programWater, "transCam"), 1, GL_TRUE, transCam.m);
     glUniformMatrix3fv(glGetUniformLocation(programWater, "InvCamMatrix"), 1, GL_TRUE, inverseCam.m);
-    glUniform1f(glGetUniformLocation(programWater, "time"), t);
+    glUniform1f(glGetUniformLocation(programWater, "moveFactor"), moveFactor);
+	glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, dudvTex);
+	glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, NormalTex);
 //	glActiveTexture(GL_TEXTURE0);
 //	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
 
-	DrawModel(waterModel, programWater, "inPosition", "inNormal", "inTexCoord");
-	glDisable(GL_BLEND);
+	DrawModel(waterModel, programWater, "inPosition", "inNormal", NULL);
+
+	//glDisable(GL_BLEND);
 
 
 	// --------

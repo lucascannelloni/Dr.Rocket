@@ -23,7 +23,8 @@ mat4 keyHandler(vec3* cam, vec3* cameraUp, Model* tm, vec3* rocketPoint,vec3* ro
     else if(rocketPoint->y<groundHeight+rocketOffset)
     {
         rocketPoint->y = groundHeight + rocketOffset;
-        rocketVel->y = -rocketVel->y;
+
+        *rocketVel = SetVector(rocketVel->x/10,-rocketVel->y/10,rocketVel->z/10);
     }
     
     if(glutKeyIsDown('d'))
