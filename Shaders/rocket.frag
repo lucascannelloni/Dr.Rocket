@@ -11,12 +11,14 @@ in vec3 pos;
 uniform sampler2D texRocket;
 uniform samplerCube cubeMap;
 uniform mat4 mdlMatrix;
+uniform int objectFlag;
 
 float shade,diffuse,specular,cosAng;
 int specularExponent = 3;
 
 void main(void)
 {
+    
     vec4 outColor1,outColor2;
     
     // Light & Normal
@@ -39,9 +41,16 @@ void main(void)
 
     
     // Out Color
+    
     outColor2 = texture(texRocket,texCoord);
+    
     outColor1 = vec4(0.5*(diffuse + specular), 0.5*(diffuse + specular), 0.5*(diffuse + specular),1);
     outColor = outColor2;//outColor1*outColor2;
+    if(objectFlag==0)
+    {
+        int r = int(pos.x) % 5;
+        outColor=vec4(0.8+(1/r),0.4,0.1,0.1);
+    }
 
 
 }
