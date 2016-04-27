@@ -16,7 +16,7 @@
 
 mat4 projectionMatrix;
 vec3 cam = {50, 20, 40};
-vec3 rocketPoint = {50, 500, 50};
+vec3 rocketPoint = {50, 50, 50};
 vec3 rocketVel = {0,0,0};
 vec3 cameraUp = {0,1,0};
 vec3 cameraFront;
@@ -29,12 +29,12 @@ int texheight;
 GLfloat tiltAngle;
 
 // vertex array object
-Model *m, *m2, *tm, *skybox,*box[6],*rocketObject,*waterModel;
+Model *m, *m2, *tm,*rocketFire, *skybox,*box[6],*rocketObject,*waterModel;
 
 // Reference to shader program
 GLuint program,programSky,programWater, programRocket;
 GLuint tex1, tex2, cubeMap,texRocket;
-TextureData ttex,water;
+TextureData ttex,water,fire;
 TextureData skyTex[6];
 
 void init(void)
@@ -93,7 +93,11 @@ void init(void)
     rocketObject = LoadModelPlus("Objects/redstoneRocket.obj");
     glUniform1i(glGetUniformLocation(programRocket, "texRocket"), 0); // Texture unit 0
     glUniformMatrix4fv(glGetUniformLocation(programRocket, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
-    LoadTGATextureSimple("grass.tga", &texRocket);
+    LoadTGATextureSimple("Objects/redstoneRocket2.tga", &texRocket);
+    
+    //rocket fire
+    LoadTGATextureData("grass.tga", &fire);
+    rocketFire = GenerateTerrain(&fire);
 
 }
 
@@ -166,8 +170,17 @@ void display(void)
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
 	
 	//Transformation matrix for terrain
+    int terrainOffset = 510;
 	mat4 terrainTrans = T(0,0,0);
 	total = Mult(camMatrix, terrainTrans);
+    mat4 terrainTrans1 = T(0,0,terrainOffset);
+    mat4 total1 = Mult(camMatrix, terrainTrans1);
+    mat4 terrainTrans2 = T(terrainOffset,0,0);
+    mat4 total2 = Mult(camMatrix, terrainTrans2);
+    mat4 terrainTrans3 = T(0,0,-terrainOffset);
+    mat4 total3 = Mult(camMatrix, terrainTrans3);
+    mat4 terrainTrans4 = T(-terrainOffset,0,0);
+    mat4 total4 = Mult(camMatrix, terrainTrans4);
 
 
 	//send to shaders & draw
@@ -176,6 +189,15 @@ void display(void)
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
+    
+    glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total1.m);
+    DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
+    glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total2.m);
+    DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
+    glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total3.m);
+    DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
+    glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total4.m);
+    DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
 
 
 	//----------
@@ -195,8 +217,10 @@ void display(void)
 
 	mat4 transCam = T(cam.x,cam.y,cam.z);
 
+    mat4 scaleWater = S(3,1,3);
 
-	mat4 waterModelView = T(0,-10,0);
+	mat4 waterModelView = T(-450,-10,-450);
+    waterModelView = Mult(waterModelView,scaleWater);
 
 	//send to shaders & draw
 	glEnable (GL_BLEND);
@@ -219,20 +243,33 @@ void display(void)
 	//---------
 	// translate and rotate Rocket
     mat4 scaleRocket = S(0.5,0.25,0.5);
+    mat4 scaleFire = S(0.005,-0.4*fabsf(sin(10*t)),0.005);
+    mat4 fireTrans = T(-1.4,0,-1.4);
 	glUseProgram(programRocket);
     mat4 rocketTrans = Mult(T(rocketPoint.x,rocketPoint.y,rocketPoint.z),rocketRotate);
 	mat4 rocketTotal = Mult(camMatrix, rocketTrans);
     rocketTotal = Mult(rocketTotal,scaleRocket);
+    mat4 fireTotal = Mult(rocketTotal,fireTrans);
+    fireTotal = Mult(fireTotal,scaleFire);
 	
 	// bind texture, send to shader & draw model
 	glActiveTexture(GL_TEXTURE0);
 
 	glBindTexture(GL_TEXTURE_2D, texRocket );
-
+glUniform1i(glGetUniformLocation(programRocket, "objectFlag"), 1);
 	glUniform1i(glGetUniformLocation(programRocket, "texRocket"), 0);
 	glUniformMatrix4fv(glGetUniformLocation(programRocket, "mdlMatrix"), 1, GL_TRUE, rocketTotal.m);
 	glUniformMatrix4fv(glGetUniformLocation(programRocket, "camMatrix"), 1, GL_TRUE, camMatrix.m);
+    
 	DrawModel(rocketObject, programRocket, "inPosition", "inNormal", "inTexCoord");
+    
+    glUniform1i(glGetUniformLocation(programRocket, "objectFlag"), 0);
+    glUniformMatrix4fv(glGetUniformLocation(programRocket, "mdlMatrix"), 1, GL_TRUE, fireTotal.m);
+    
+    if(glutKeyIsDown('f'))
+    {
+        DrawModel(rocketFire, programRocket, "inPosition", "inNormal", "inTexCoord");
+    }
 	
 	printError("display 2");
 	
