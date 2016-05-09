@@ -22,7 +22,7 @@ void main(void)
     vec4 outColor1,outColor2;
     
     // Light & Normal
-    vec3 normLight = vec3(0,1,0); //above
+    vec3 normLight = vec3(.5,1,.5); //above
     mat3 normalMatrix1 = mat3(mdlMatrix);
     normLight = normalMatrix1*normLight;
     
@@ -45,11 +45,11 @@ void main(void)
     outColor2 = texture(texRocket,texCoord);
     
     outColor1 = vec4(0.5*(diffuse + specular), 0.5*(diffuse + specular), 0.5*(diffuse + specular),1);
-    outColor = outColor2;//outColor1*outColor2;
+    outColor = mix(outColor2,outColor1,0.7);//outColor1*outColor2;
     if(objectFlag==0)
     {
         int r = int(pos.x) % 5;
-        outColor=vec4(0.8+(1/r),0.4,0.1,0.1);
+        outColor=vec4(0.8+(1/r),0.4,0.1,0.1) + outColor1;
     }
 
 
