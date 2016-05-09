@@ -1,8 +1,9 @@
 #version 150
 
-in  vec3 inPosition;
-in  vec3 inNormal;
+in vec3 inPosition;
+in vec3 inNormal;
 in vec2 inTexCoord;
+
 out vec2 texCoord;
 out vec3 transformedNormal;
 out vec4 vertexPoint;
@@ -24,5 +25,4 @@ void main(void)
     
     vertexPoint = mdlMatrix*vec4(inPosition,1.0);
     exNormal = inNormal;
-    
 }
