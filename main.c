@@ -32,7 +32,7 @@ float waveSpeed = 0.01f;
 float moveFactor = 0.1;
 int texwidth;
 int texheight;
-int waterLevel = -10;
+int waterLevel = 3;
 GLfloat tiltAngle;
 bool isGameOver = false;
 
@@ -53,7 +53,7 @@ void init(void)
 	glDisable(GL_CULL_FACE);
 	printError("GL inits");
 
-	projectionMatrix = frustum(-0.1, 0.1, -0.1, 0.1, 0.2, 1000.0);
+	projectionMatrix = frustum(-0.1, 0.1, -0.1, 0.1, 0.2, 2000.0);
 
 	// Load and compile shader
 	program = loadShaders("Shaders/terrain.vert", "Shaders/terrain.frag");
@@ -145,47 +145,63 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix)
 
 	mat4 terrainTrans = T(xPosPatch*terrainOffset,0,zPosPatch*terrainOffset);
 	mat4 total = Mult(camMatrix, terrainTrans);
-	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
+	//glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
+    //DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
+ 
+    int frustumAngle = 50;
+    mat4 planeRotPos = Ry(frustumAngle);
+    mat4 planeRotNeg = Ry(-frustumAngle);
+    
+    vec3 rightVect = MultVec3(planeRotPos,dirVect);
+    vec3 leftVect = MultVec3(planeRotNeg,dirVect);
+    
+    vec3 rightPlane = CrossProduct(rightVect,SetVector(0,1,0));
+    vec3 leftPlane = CrossProduct(leftVect,SetVector(0,-1,0));
+    
+    float rightD = -DotProduct(rightPlane,cam);
+    float leftD = -DotProduct(leftPlane,cam);
+    
+    vec4 rightHomPlane;
+    rightHomPlane.x = rightPlane.x;
+    rightHomPlane.y = rightPlane.y;
+    rightHomPlane.z = rightPlane.z;
+    rightHomPlane.w = rightD;
+    
+    vec4 leftHomPlane;
+    leftHomPlane.x = leftPlane.x;
+    leftHomPlane.y = leftPlane.y;
+    leftHomPlane.z = leftPlane.z;
+    leftHomPlane.w = leftD;
+    
+    
+    glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
     DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
- 	/*
- 	if cosAlpha > 0.924
- 	{
- 	 	mat4 terrainTrans5 = T(terrainOffset,0,terrainOffset);
-    	mat4 total5 = Mult(total, terrainTrans5);
-    	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total5.m);
-    	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
-
-    	mat4 terrainTrans2 = T(terrainOffset,0,0);
-    	mat4 total2 = Mult(total, terrainTrans2);
-    	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total2.m);
-    	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
-
-    	mat4 terrainTrans6 = T(terrainOffset,0,-terrainOffset);
-    	mat4 total6 = Mult(total, terrainTrans6);
-    	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total6.m);
-    	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
- 	}
-
- 	if cosAlpha < -0.924
- 	{
- 	 	mat4 terrainTrans5 = T(-terrainOffset,0,-terrainOffset);
-    	mat4 total5 = Mult(total, terrainTrans5);
-    	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total5.m);
-    	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
-
-    	mat4 terrainTrans2 = T(-terrainOffset,0,0);
-    	mat4 total2 = Mult(total, terrainTrans2);
-    	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total2.m);
-    	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
-
-    	mat4 terrainTrans6 = T(-terrainOffset,0,-terrainOffset);
-    	mat4 total6 = Mult(total, terrainTrans6);
-    	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total6.m);
-    	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
- 	}*/
-   	mat4 terrainTrans1 = T(0,0,terrainOffset);
-    mat4 total1 = Mult(total, terrainTrans1);
-    mat4 terrainTrans2 = T(terrainOffset,0,0);
+    
+    for (int i = -3; i<3; i++) {
+        for (int j = -3; j<3; j++) {
+            vec4 gridPoint;
+            gridPoint.x = (i+ xPosPatch)*terrainOffset;
+            gridPoint.y = 0;
+            gridPoint.z = (j+ zPosPatch)*terrainOffset;
+            gridPoint.w = 1;
+            
+            int scalarGrid1 = rightHomPlane.x*gridPoint.x + rightHomPlane.y*gridPoint.y + rightHomPlane.z*gridPoint.z + rightHomPlane.w*gridPoint.w;
+            int scalarGrid2 = leftHomPlane.x*gridPoint.x + leftHomPlane.y*gridPoint.y + leftHomPlane.z*gridPoint.z + leftHomPlane.w*gridPoint.w;
+            if (scalarGrid1>0 && scalarGrid2>0) {
+                
+                mat4 terrainTrans2 = T(terrainOffset*i,0,terrainOffset*j);
+                terrainTrans2 = T(terrainOffset*i,0,terrainOffset*j);
+                mat4 total2 = Mult(total, terrainTrans2);
+                
+                glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total2.m);
+                DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
+            }
+    }
+    }
+    /*
+     mat4 terrainTrans1 = T(0,0,terrainOffset);
+     mat4 total1 = Mult(total, terrainTrans1);
+     mat4 terrainTrans2 = T(terrainOffset,0,0);
     mat4 total2 = Mult(total, terrainTrans2);
     mat4 terrainTrans3 = T(0,0,-terrainOffset);
     mat4 total3 = Mult(total, terrainTrans3);
@@ -198,27 +214,28 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix)
     mat4 terrainTrans7 = T(-terrainOffset,0,terrainOffset);
     mat4 total7 = Mult(total, terrainTrans7);
     mat4 terrainTrans8 = T(-terrainOffset,0,-terrainOffset);
-    mat4 total8 = Mult(total, terrainTrans8);
+    mat4 total8 = Mult(total, terrainTrans8);*/
 
 
-    glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
+    /*glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
+    DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");*/
+    
+    /*glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total1.m);
     DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
-    glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total1.m);
-    DrawModel(tm2, program, "inPosition", "inNormal", "inTexCoord");
     glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total2.m);
     DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
     glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total3.m);
-    DrawModel(tm2, program, "inPosition", "inNormal", "inTexCoord");
+    DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
     glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total4.m);
     DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
     glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total5.m);
-    DrawModel(tm2, program, "inPosition", "inNormal", "inTexCoord");
+    DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
     glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total6.m);
     DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
     glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total7.m);
-    DrawModel(tm2, program, "inPosition", "inNormal", "inTexCoord");
-    glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total8.m);
     DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
+    glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total8.m);
+    DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");*/
 }
 
 void drawWater(vec3 cam, mat4 camMatrix)
