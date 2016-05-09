@@ -19,8 +19,8 @@
 
 mat4 projectionMatrix;
 vec3 cam = {50, 20, 40};
-vec3 rocketPoint = {50, 50, 50};
-vec3 rocketTopPoint = {50, 60, 50};
+vec3 rocketPoint = {50, 70, 50};
+vec3 rocketTopPoint = {50, 80, 50};
 vec3 rocketVel = {0,0,0};
 vec3 cameraUp = {0,1,0};
 vec3 cameraFront;
@@ -138,15 +138,18 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix)
 {
 	int terrainOffset = 510;
 	vec3 dirVect = VectorSub(Normalize(rocketPoint),Normalize(cam));
+
 	float xPosPatch = floor(cam.x/512);
 	float zPosPatch = floor(cam.z/512);
 
 	mat4 terrainTrans = T(xPosPatch*terrainOffset,0,zPosPatch*terrainOffset);
 	mat4 total = Mult(camMatrix, terrainTrans);
  
-    float frustumAngle = 1; //radians
+
+    float frustumAngle = pi/1.5;
+
     mat4 planeRotPos = Ry(frustumAngle);
-    mat4 planeRotNeg = Ry(-frustumAngle);
+    mat4 planeRotNeg = Ry(2*pi-frustumAngle);
     
     vec3 rightVect = MultVec3(planeRotPos,dirVect);
     vec3 leftVect = MultVec3(planeRotNeg,dirVect);
@@ -154,7 +157,7 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix)
     vec3 rightPlane = CrossProduct(rightVect,SetVector(0,1,0));
     vec3 leftPlane = CrossProduct(leftVect,SetVector(0,-1,0));
     
-    vec3 refPoint = VectorSub(cam,ScalarMult(Normalize(dirVect),15));
+    vec3 refPoint = VectorSub(cam,ScalarMult(Normalize(dirVect),30));
     
     float rightD = -DotProduct(rightPlane,refPoint);
     float leftD = -DotProduct(leftPlane,refPoint);
@@ -177,15 +180,44 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix)
     
     for (int i = -3; i<3; i++) {
         for (int j = -3; j<3; j++) {
-            vec4 gridPoint;
-            gridPoint.x = (i + xPosPatch)*terrainOffset;
-            gridPoint.y = 0;
-            gridPoint.z = (j + zPosPatch)*terrainOffset;
-            gridPoint.w = 1;
+
+            vec4 gridPoint1;
+            gridPoint1.x = (i+ xPosPatch)*terrainOffset;
+            gridPoint1.y = 0;
+            gridPoint1.z = (j+ zPosPatch)*terrainOffset;
+            gridPoint1.w = 1;
             
-            int scalarGrid1 = rightHomPlane.x*gridPoint.x + rightHomPlane.y*gridPoint.y + rightHomPlane.z*gridPoint.z + rightHomPlane.w*gridPoint.w;
-            int scalarGrid2 = leftHomPlane.x*gridPoint.x + leftHomPlane.y*gridPoint.y + leftHomPlane.z*gridPoint.z + leftHomPlane.w*gridPoint.w;
-            if (scalarGrid1<0 && scalarGrid2<0) {
+            vec4 gridPoint2;
+            gridPoint2.x = (i+1+ xPosPatch)*terrainOffset;
+            gridPoint2.y = 0;
+            gridPoint2.z = (j+ zPosPatch)*terrainOffset;
+            gridPoint2.w = 1;
+            
+            vec4 gridPoint3;
+            gridPoint3.x = (i+ xPosPatch)*terrainOffset;
+            gridPoint3.y = 0;
+            gridPoint3.z = (j+1+ zPosPatch)*terrainOffset;
+            gridPoint3.w = 1;
+            
+            vec4 gridPoint4;
+            gridPoint4.x = (i+1+ xPosPatch)*terrainOffset;
+            gridPoint4.y = 0;
+            gridPoint4.z = (j+1+ zPosPatch)*terrainOffset;
+            gridPoint4.w = 1;
+            
+            int scalarGrid11 = rightHomPlane.x*gridPoint1.x + rightHomPlane.y*gridPoint1.y + rightHomPlane.z*gridPoint1.z + rightHomPlane.w*gridPoint1.w;
+            int scalarGrid12 = leftHomPlane.x*gridPoint1.x + leftHomPlane.y*gridPoint1.y + leftHomPlane.z*gridPoint1.z + leftHomPlane.w*gridPoint1.w;
+            
+            int scalarGrid21 = rightHomPlane.x*gridPoint2.x + rightHomPlane.y*gridPoint2.y + rightHomPlane.z*gridPoint2.z + rightHomPlane.w*gridPoint2.w;
+            int scalarGrid22 = leftHomPlane.x*gridPoint2.x + leftHomPlane.y*gridPoint2.y + leftHomPlane.z*gridPoint2.z + leftHomPlane.w*gridPoint2.w;
+            
+            int scalarGrid31 = rightHomPlane.x*gridPoint3.x + rightHomPlane.y*gridPoint3.y + rightHomPlane.z*gridPoint3.z + rightHomPlane.w*gridPoint3.w;
+            int scalarGrid32 = leftHomPlane.x*gridPoint3.x + leftHomPlane.y*gridPoint3.y + leftHomPlane.z*gridPoint3.z + leftHomPlane.w*gridPoint3.w;
+            
+            int scalarGrid41 = rightHomPlane.x*gridPoint4.x + rightHomPlane.y*gridPoint4.y + rightHomPlane.z*gridPoint4.z + rightHomPlane.w*gridPoint4.w;
+            int scalarGrid42 = leftHomPlane.x*gridPoint4.x + leftHomPlane.y*gridPoint4.y + leftHomPlane.z*gridPoint4.z + leftHomPlane.w*gridPoint4.w;
+            
+            if ((scalarGrid11<0 && scalarGrid12<0) || (scalarGrid21<0 && scalarGrid22<0) || (scalarGrid31<0 && scalarGrid32<0) || (scalarGrid41<0 && scalarGrid42<0)) {
                 
                 mat4 terrainTrans2 = T(terrainOffset*i,0,terrainOffset*j);
                 terrainTrans2 = T(terrainOffset*i,0,terrainOffset*j);
