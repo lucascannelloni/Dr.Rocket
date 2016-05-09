@@ -3,7 +3,7 @@
 vec3 dirVect;
 GLfloat tiltAngle = 0.0f;
 
-mat4 keyHandler(vec3* cam, vec3* cameraUp, Model* tm, vec3* rocketPoint,vec3* rocketVel)
+mat4 keyHandler(vec3* cam, vec3* cameraUp, Model* tm, vec3* rocketPoint,vec3* rocketVel, vec3* rocketTopPoint)
 {
     
     dirVect = Normalize(VectorSub(*rocketPoint,*cam));
@@ -20,11 +20,11 @@ mat4 keyHandler(vec3* cam, vec3* cameraUp, Model* tm, vec3* rocketPoint,vec3* ro
         rocketPoint->y = groundHeight + rocketOffset;
         *rocketVel = SetVector(0,0,0);
     }
-    else if(rocketPoint->y<groundHeight+rocketOffset)
+    if(rocketPoint->y<groundHeight+rocketOffset || rocketTopPoint->y<groundHeight+rocketOffset)
     {
-        rocketPoint->y = groundHeight + rocketOffset;
 
-        *rocketVel = SetVector(rocketVel->x/10,-rocketVel->y/10,rocketVel->z/10);
+        *rocketVel = SetVector(rocketVel->x/1.2,-rocketVel->y/1.2,rocketVel->z/1.2);
+        gameOver();
     }
     
     if(glutKeyIsDown('d'))
@@ -39,7 +39,7 @@ mat4 keyHandler(vec3* cam, vec3* cameraUp, Model* tm, vec3* rocketPoint,vec3* ro
     mat4 rocketRotate = ArbRotate(orthRocketVect,tiltAngle);
     
    
-    vec3 thrustDir = MultVec3(rocketRotate,*cameraUp);
+    vec3 thrustDir = Normalize(MultVec3(rocketRotate,*cameraUp));
     
     if(glutKeyIsDown('y'))
     {
@@ -50,7 +50,7 @@ mat4 keyHandler(vec3* cam, vec3* cameraUp, Model* tm, vec3* rocketPoint,vec3* ro
         *rocketVel = VectorAdd(*rocketVel,ScalarMult(thrustDir,0.07));
     }
     
-    //*cam = VectorSub(*rocketPoint,ScalarMult(dirVect,50));
+    *rocketTopPoint = VectorAdd(*rocketPoint,ScalarMult(thrustDir,7));
     return rocketRotate;
 }
 

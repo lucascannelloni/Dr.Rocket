@@ -7,6 +7,9 @@
 Model* GenerateTerrain(TextureData *tex);
 float heightCalc(float x, float z, Model* tm);
 void loadTextures(GLuint *cubemap, TextureData *t, Model *box[6]);
+void waterCheck(vec3 *rocketPoint, int* waterLevel);
+
+
 //GLuint loadCubemap();
 
 #endif

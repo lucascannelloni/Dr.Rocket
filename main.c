@@ -13,10 +13,14 @@
 #include "givenFiles/LoadTGA.h"
 #include "world.h"
 #include "rocket.h"
+#include "simplefont.h"
+#include <stdlib.h>
+#include <string.h>
 
 mat4 projectionMatrix;
 vec3 cam = {50, 20, 40};
 vec3 rocketPoint = {50, 50, 50};
+vec3 rocketTopPoint = {50, 60, 50};
 vec3 rocketVel = {0,0,0};
 vec3 cameraUp = {0,1,0};
 vec3 cameraFront;
@@ -28,7 +32,9 @@ float waveSpeed = 0.01f;
 float moveFactor = 0;
 int texwidth;
 int texheight;
+int waterLevel = -10;
 GLfloat tiltAngle;
+bool isGameOver = false;
 
 // vertex array object
 Model *m, *m2, *tm,*rocketFire, *skybox,*box[6],*rocketObject,*waterModel;
@@ -61,7 +67,7 @@ void init(void)
 	glUniformMatrix4fv(glGetUniformLocation(program, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 	glUniform1i(glGetUniformLocation(program, "tex1"), 0); // Texture unit 0
 
-	LoadTGATextureSimple("dirt.tga", &tex1);
+	LoadTGATextureSimple("grass.tga", &tex1);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 
 	// Load terrain data
@@ -130,25 +136,29 @@ void display(void)
 {
 	//Update Cam to follow Rocket
 	cam = VectorSub(rocketPoint,cameraFront);
+    waterCheck(&rocketPoint, &waterLevel);
     
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
     
-    GLfloat gravVel = 0.05f;
+    GLfloat gravVel = 0.02f;
     float rocketOffset = 10;
     if (rocketPoint.y > rocketOffset)
     {
     	rocketVel.y = rocketVel.y-gravVel;
     }
+    
 
+   
+    
     rocketPoint = VectorAdd(rocketPoint,rocketVel);
 	
 	mat4 total, modelView, camMatrix;
 	printError("pre display");
 
 	// Key handler for update of Rocket position and orientation, camera pos etc
-	mat4 rocketRotate = keyHandler(&cam,&cameraUp,tm, &rocketPoint, &rocketVel);
+	mat4 rocketRotate = keyHandler(&cam,&cameraUp,tm, &rocketPoint, &rocketVel, &rocketTopPoint);
 	camMatrix = lookAt(cam.x, cam.y, cam.z,
 				rocketPoint.x, rocketPoint.y, rocketPoint.z,
 				cameraUp.x,cameraUp.y,cameraUp.z);
@@ -232,7 +242,7 @@ void display(void)
 
     mat4 scaleWater = S(3,1,3);
 
-	mat4 waterModelView = T(-450,-10,-450);
+	mat4 waterModelView = T(-450,waterLevel,-450);
     waterModelView = Mult(waterModelView,scaleWater);
 
 	moveFactor = moveFactor + waveSpeed*t;
@@ -293,7 +303,10 @@ glUniform1i(glGetUniformLocation(programRocket, "objectFlag"), 1);
     }
 	
 	printError("display 2");
-	
+    if(isGameOver)
+    {
+       sfDrawString(270, 100, "game over");
+    }
 	glutSwapBuffers();
 }
 
@@ -339,6 +352,11 @@ void mouse(int x, int y)
     cam = VectorSub(rocketPoint,cameraFront);
 }
 
+bool gameOver(bool gameOver)
+{
+    isGameOver = true;
+}
+
 int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
@@ -346,6 +364,8 @@ int main(int argc, char **argv)
 	glutInitContextVersion(3, 2);
 	glutInitWindowSize (600, 600);
 	glutCreateWindow ("Dr. Rocket");
+    sfMakeRasterFont(); // init font
+    sfSetRasterSize(600, 200);
 	glutDisplayFunc(display);
 	init ();
 	glutTimerFunc(20, &timer, 0);

@@ -7,7 +7,7 @@
 #include "world.h"
 #include <math.h>
 
-mat4 keyHandler(vec3 *cam, vec3 *cameraUp, Model* tm, vec3 *rocketPoint, vec3 *rocketVel);
+mat4 keyHandler(vec3 *cam, vec3 *cameraUp, Model* tm, vec3 *rocketPoint, vec3 *rocketVel, vec3 *rocketTopPoint);
 //float heightCalc(float x, float z);
 void mouse(int x, int y);
 

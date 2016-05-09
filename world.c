@@ -265,3 +265,22 @@ float heightCalc(float x, float z, Model* tm)
     float y = A*ze + B*(1-ze);
     return y;
 }
+
+void waterCheck(vec3* rocketPoint, int* waterLevel)
+{
+    if (rocketPoint->y < *waterLevel+27)
+    {
+        gameOver();
+    }
+    
+}
+
+
+
+
+
+
+
+
+
+
