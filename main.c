@@ -19,8 +19,8 @@
 
 mat4 projectionMatrix;
 vec3 cam = {50, 20, 40};
-vec3 rocketPoint = {50, 50, 50};
-vec3 rocketTopPoint = {50, 60, 50};
+vec3 rocketPoint = {50, 70, 50};
+vec3 rocketTopPoint = {50, 80, 50};
 vec3 rocketVel = {0,0,0};
 vec3 cameraUp = {0,1,0};
 vec3 cameraFront;
@@ -137,20 +137,21 @@ mat4 placeModelOnGround(float x, float z)
 void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix)
 {
 	int terrainOffset = 510;
+    int refOffset = 206;
 	vec3 xAxis = SetVector(1,0,0);
 	vec3 dirVect = VectorSub(Normalize(rocketPoint),Normalize(cam));
 	float cosAlpha = DotProduct(dirVect,xAxis);
-	float xPosPatch = floor(cam.x/terrainOffset);
-	float zPosPatch = floor(cam.z/terrainOffset);
+	float xPosPatch = floor(cam.x/512);
+	float zPosPatch = floor(cam.z/512);
 
 	mat4 terrainTrans = T(xPosPatch*terrainOffset,0,zPosPatch*terrainOffset);
 	mat4 total = Mult(camMatrix, terrainTrans);
 	//glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
     //DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
  
-    int frustumAngle = 50;
+    float frustumAngle = pi/1.5;
     mat4 planeRotPos = Ry(frustumAngle);
-    mat4 planeRotNeg = Ry(-frustumAngle);
+    mat4 planeRotNeg = Ry(2*pi-frustumAngle);
     
     vec3 rightVect = MultVec3(planeRotPos,dirVect);
     vec3 leftVect = MultVec3(planeRotNeg,dirVect);
@@ -158,8 +159,8 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix)
     vec3 rightPlane = CrossProduct(rightVect,SetVector(0,1,0));
     vec3 leftPlane = CrossProduct(leftVect,SetVector(0,-1,0));
     
-    float rightD = -DotProduct(rightPlane,cam);
-    float leftD = -DotProduct(leftPlane,cam);
+    float rightD = -DotProduct(rightPlane,VectorSub(cam,ScalarMult(Normalize(dirVect),30)));
+    float leftD = -DotProduct(leftPlane,VectorSub(cam,ScalarMult(Normalize(dirVect),30)));
     
     vec4 rightHomPlane;
     rightHomPlane.x = rightPlane.x;
@@ -179,15 +180,46 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix)
     
     for (int i = -3; i<3; i++) {
         for (int j = -3; j<3; j++) {
-            vec4 gridPoint;
-            gridPoint.x = (i+ xPosPatch)*terrainOffset;
-            gridPoint.y = 0;
-            gridPoint.z = (j+ zPosPatch)*terrainOffset;
-            gridPoint.w = 1;
+            vec4 gridPoint1;
+            gridPoint1.x = (i+ xPosPatch)*terrainOffset;
+            gridPoint1.y = 0;
+            gridPoint1.z = (j+ zPosPatch)*terrainOffset;
+            gridPoint1.w = 1;
             
-            int scalarGrid1 = rightHomPlane.x*gridPoint.x + rightHomPlane.y*gridPoint.y + rightHomPlane.z*gridPoint.z + rightHomPlane.w*gridPoint.w;
-            int scalarGrid2 = leftHomPlane.x*gridPoint.x + leftHomPlane.y*gridPoint.y + leftHomPlane.z*gridPoint.z + leftHomPlane.w*gridPoint.w;
-            if (scalarGrid1>0 && scalarGrid2>0) {
+            vec4 gridPoint2;
+            gridPoint2.x = (i+1+ xPosPatch)*terrainOffset;
+            gridPoint2.y = 0;
+            gridPoint2.z = (j+ zPosPatch)*terrainOffset;
+            gridPoint2.w = 1;
+            
+            vec4 gridPoint3;
+            gridPoint3.x = (i+ xPosPatch)*terrainOffset;
+            gridPoint3.y = 0;
+            gridPoint3.z = (j+1+ zPosPatch)*terrainOffset;
+            gridPoint3.w = 1;
+            
+            vec4 gridPoint4;
+            gridPoint4.x = (i+1+ xPosPatch)*terrainOffset;
+            gridPoint4.y = 0;
+            gridPoint4.z = (j+1+ zPosPatch)*terrainOffset;
+            gridPoint4.w = 1;
+            
+            int scalarGrid11 = rightHomPlane.x*gridPoint1.x + rightHomPlane.y*gridPoint1.y + rightHomPlane.z*gridPoint1.z + rightHomPlane.w*gridPoint1.w;
+            int scalarGrid12 = leftHomPlane.x*gridPoint1.x + leftHomPlane.y*gridPoint1.y + leftHomPlane.z*gridPoint1.z + leftHomPlane.w*gridPoint1.w;
+            
+            int scalarGrid21 = rightHomPlane.x*gridPoint2.x + rightHomPlane.y*gridPoint2.y + rightHomPlane.z*gridPoint2.z + rightHomPlane.w*gridPoint2.w;
+            int scalarGrid22 = leftHomPlane.x*gridPoint2.x + leftHomPlane.y*gridPoint2.y + leftHomPlane.z*gridPoint2.z + leftHomPlane.w*gridPoint2.w;
+            
+            int scalarGrid31 = rightHomPlane.x*gridPoint3.x + rightHomPlane.y*gridPoint3.y + rightHomPlane.z*gridPoint3.z + rightHomPlane.w*gridPoint3.w;
+            int scalarGrid32 = leftHomPlane.x*gridPoint3.x + leftHomPlane.y*gridPoint3.y + leftHomPlane.z*gridPoint3.z + leftHomPlane.w*gridPoint3.w;
+            
+            int scalarGrid41 = rightHomPlane.x*gridPoint4.x + rightHomPlane.y*gridPoint4.y + rightHomPlane.z*gridPoint4.z + rightHomPlane.w*gridPoint4.w;
+            int scalarGrid42 = leftHomPlane.x*gridPoint4.x + leftHomPlane.y*gridPoint4.y + leftHomPlane.z*gridPoint4.z + leftHomPlane.w*gridPoint4.w;
+            
+            
+            
+            
+            if ((scalarGrid11<0 && scalarGrid12<0) || (scalarGrid21<0 && scalarGrid22<0) || (scalarGrid31<0 && scalarGrid32<0) || (scalarGrid41<0 && scalarGrid42<0)) {
                 
                 mat4 terrainTrans2 = T(terrainOffset*i,0,terrainOffset*j);
                 terrainTrans2 = T(terrainOffset*i,0,terrainOffset*j);
@@ -198,44 +230,6 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix)
             }
     }
     }
-    /*
-     mat4 terrainTrans1 = T(0,0,terrainOffset);
-     mat4 total1 = Mult(total, terrainTrans1);
-     mat4 terrainTrans2 = T(terrainOffset,0,0);
-    mat4 total2 = Mult(total, terrainTrans2);
-    mat4 terrainTrans3 = T(0,0,-terrainOffset);
-    mat4 total3 = Mult(total, terrainTrans3);
-    mat4 terrainTrans4 = T(-terrainOffset,0,0);
-    mat4 total4 = Mult(total, terrainTrans4);
-    mat4 terrainTrans5 = T(terrainOffset,0,terrainOffset);
-    mat4 total5 = Mult(total, terrainTrans5);
-    mat4 terrainTrans6 = T(terrainOffset,0,-terrainOffset);
-    mat4 total6 = Mult(total, terrainTrans6);
-    mat4 terrainTrans7 = T(-terrainOffset,0,terrainOffset);
-    mat4 total7 = Mult(total, terrainTrans7);
-    mat4 terrainTrans8 = T(-terrainOffset,0,-terrainOffset);
-    mat4 total8 = Mult(total, terrainTrans8);*/
-
-
-    /*glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
-    DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");*/
-    
-    /*glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total1.m);
-    DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
-    glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total2.m);
-    DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
-    glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total3.m);
-    DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
-    glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total4.m);
-    DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
-    glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total5.m);
-    DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
-    glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total6.m);
-    DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
-    glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total7.m);
-    DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
-    glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total8.m);
-    DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");*/
 }
 
 void drawWater(vec3 cam, mat4 camMatrix)
