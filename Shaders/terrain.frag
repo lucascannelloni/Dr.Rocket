@@ -6,13 +6,14 @@ in vec2 texCoord;
 in vec3 transformedNormal;
 in vec4 vertexPoint;
 in vec3 exNormal;
-in vec3 pos;
+in vec4 pos;
 
 uniform sampler2D tex1;
 uniform sampler2D tex2;
 uniform samplerCube cubeMap;
 uniform mat4 mdlMatrix;
 uniform vec3 camPos;
+uniform vec3 offset;
 
 float shade,diffuse,specular,cosAng,fogFactor;
 int specularExponent = 3;
@@ -39,11 +40,11 @@ void main(void)
     cosAng = max(0.0,dot(reflectDir,eyeDir));
     specular = pow(cosAng,specularExponent);
 
-    float dist = length(abs(camPos - pos));
-    float horizon = 500;
-    float world = 300;
+    float dist = abs(length(camPos - vec3(pos)));
+    float horizon = 900;
+    float world = 350;
     
-    if (dist < world) //no idea??
+    if (dist < world)
     {
         fogFactor = 1;
     }

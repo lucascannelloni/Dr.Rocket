@@ -11,6 +11,7 @@ uniform mat4 transCam;
 uniform mat3 InvCamMatrix;
 uniform float time;
 uniform vec3 camPos;
+uniform vec3 offset;
 
 
 out vec3 reflectedView;
@@ -18,6 +19,7 @@ out vec2 texCoord;
 out vec3 refractView;
 out vec3 fromLightVect;
 out vec3 toCameraVect;
+out vec4 pos;
 
 const float tiling = 6.0;
 const float pi = 3.1415;
@@ -40,7 +42,8 @@ void main(void)
     reflectedView = reflect(viewDirectionInWorldCoord, normalize(wcNormal));
   //  reflectedView.x = clamp(reflectedView.z,0.001,0.999);
    // reflectedView.y = clamp(reflectedView.x,-0.999,-0.001);
-
+    
+    pos = mdlMatrix*vec4(inPosition + offset,1.0);
     
     //refract
     float ratio = 1/1.33;
