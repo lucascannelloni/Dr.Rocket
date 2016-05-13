@@ -139,7 +139,7 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix)
 	int terrainOffset = 510;
     int refOffset = 206;
 	vec3 xAxis = SetVector(1,0,0);
-	vec3 dirVect = VectorSub(Normalize(rocketPoint),Normalize(cam));
+	vec3 dirVect = Normalize(VectorSub(rocketPoint,cam));
 	float cosAlpha = DotProduct(dirVect,xAxis);
 	float xPosPatch = floor(cam.x/512);
 	float zPosPatch = floor(cam.z/512);
@@ -149,18 +149,18 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix)
 	//glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
     //DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
  
-    float frustumAngle = pi/1.5;
+    float frustumAngle = pi/8;
     mat4 planeRotPos = Ry(frustumAngle);
-    mat4 planeRotNeg = Ry(2*pi-frustumAngle);
+    mat4 planeRotNeg = Ry(-frustumAngle);
     
-    vec3 rightVect = MultVec3(planeRotPos,dirVect);
-    vec3 leftVect = MultVec3(planeRotNeg,dirVect);
+    vec3 rightVect = MultVec3(planeRotNeg,dirVect);
+    vec3 leftVect = MultVec3(planeRotPos,dirVect);
     
-    vec3 rightPlane = CrossProduct(rightVect,SetVector(0,1,0));
-    vec3 leftPlane = CrossProduct(leftVect,SetVector(0,-1,0));
+    vec3 rightPlane = Normalize(CrossProduct(SetVector(0,1,0),rightVect));
+    vec3 leftPlane = Normalize(CrossProduct(SetVector(0,-1,0),leftVect));
     
-    float rightD = -DotProduct(rightPlane,VectorSub(cam,ScalarMult(Normalize(dirVect),30)));
-    float leftD = -DotProduct(leftPlane,VectorSub(cam,ScalarMult(Normalize(dirVect),30)));
+    float rightD = -DotProduct(rightPlane,VectorSub(cam,ScalarMult(Normalize(dirVect),10)));
+    float leftD = -DotProduct(leftPlane,VectorSub(cam,ScalarMult(Normalize(dirVect),10)));
     
     vec4 rightHomPlane;
     rightHomPlane.x = rightPlane.x;
@@ -174,12 +174,21 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix)
     leftHomPlane.z = leftPlane.z;
     leftHomPlane.w = leftD;
     
+    float scalarGrid11;
+    float scalarGrid12;
+    float scalarGrid21;
+    float scalarGrid22;
+    float scalarGrid31;
+    float scalarGrid32;
+    float scalarGrid41;
+    float scalarGrid42;
     
     glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
     DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
     
-    for (int i = -3; i<3; i++) {
-        for (int j = -3; j<3; j++) {
+    int numberOfPatches = 3;
+    for (int i = -numberOfPatches; i<numberOfPatches; i++) {
+        for (int j = -numberOfPatches; j<numberOfPatches; j++) {
             vec4 gridPoint1;
             gridPoint1.x = (i+ xPosPatch)*terrainOffset;
             gridPoint1.y = 0;
@@ -204,17 +213,17 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix)
             gridPoint4.z = (j+1+ zPosPatch)*terrainOffset;
             gridPoint4.w = 1;
             
-            int scalarGrid11 = rightHomPlane.x*gridPoint1.x + rightHomPlane.y*gridPoint1.y + rightHomPlane.z*gridPoint1.z + rightHomPlane.w*gridPoint1.w;
-            int scalarGrid12 = leftHomPlane.x*gridPoint1.x + leftHomPlane.y*gridPoint1.y + leftHomPlane.z*gridPoint1.z + leftHomPlane.w*gridPoint1.w;
+            scalarGrid11 = rightHomPlane.x*gridPoint1.x + rightHomPlane.y*gridPoint1.y + rightHomPlane.z*gridPoint1.z + rightHomPlane.w*gridPoint1.w;
+            scalarGrid12 = leftHomPlane.x*gridPoint1.x + leftHomPlane.y*gridPoint1.y + leftHomPlane.z*gridPoint1.z + leftHomPlane.w*gridPoint1.w;
             
-            int scalarGrid21 = rightHomPlane.x*gridPoint2.x + rightHomPlane.y*gridPoint2.y + rightHomPlane.z*gridPoint2.z + rightHomPlane.w*gridPoint2.w;
-            int scalarGrid22 = leftHomPlane.x*gridPoint2.x + leftHomPlane.y*gridPoint2.y + leftHomPlane.z*gridPoint2.z + leftHomPlane.w*gridPoint2.w;
+            scalarGrid21 = rightHomPlane.x*gridPoint2.x + rightHomPlane.y*gridPoint2.y + rightHomPlane.z*gridPoint2.z + rightHomPlane.w*gridPoint2.w;
+            scalarGrid22 = leftHomPlane.x*gridPoint2.x + leftHomPlane.y*gridPoint2.y + leftHomPlane.z*gridPoint2.z + leftHomPlane.w*gridPoint2.w;
             
-            int scalarGrid31 = rightHomPlane.x*gridPoint3.x + rightHomPlane.y*gridPoint3.y + rightHomPlane.z*gridPoint3.z + rightHomPlane.w*gridPoint3.w;
-            int scalarGrid32 = leftHomPlane.x*gridPoint3.x + leftHomPlane.y*gridPoint3.y + leftHomPlane.z*gridPoint3.z + leftHomPlane.w*gridPoint3.w;
+            scalarGrid31 = rightHomPlane.x*gridPoint3.x + rightHomPlane.y*gridPoint3.y + rightHomPlane.z*gridPoint3.z + rightHomPlane.w*gridPoint3.w;
+            scalarGrid32 = leftHomPlane.x*gridPoint3.x + leftHomPlane.y*gridPoint3.y + leftHomPlane.z*gridPoint3.z + leftHomPlane.w*gridPoint3.w;
             
-            int scalarGrid41 = rightHomPlane.x*gridPoint4.x + rightHomPlane.y*gridPoint4.y + rightHomPlane.z*gridPoint4.z + rightHomPlane.w*gridPoint4.w;
-            int scalarGrid42 = leftHomPlane.x*gridPoint4.x + leftHomPlane.y*gridPoint4.y + leftHomPlane.z*gridPoint4.z + leftHomPlane.w*gridPoint4.w;
+            scalarGrid41 = rightHomPlane.x*gridPoint4.x + rightHomPlane.y*gridPoint4.y + rightHomPlane.z*gridPoint4.z + rightHomPlane.w*gridPoint4.w;
+            scalarGrid42 = leftHomPlane.x*gridPoint4.x + leftHomPlane.y*gridPoint4.y + leftHomPlane.z*gridPoint4.z + leftHomPlane.w*gridPoint4.w;
             
             
             
