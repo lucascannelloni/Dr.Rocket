@@ -6,14 +6,16 @@ in vec2 texCoord;
 in vec3 transformedNormal;
 in vec4 vertexPoint;
 in vec3 exNormal;
-in vec3 pos;
+in vec4 pos;
 
 uniform sampler2D tex1;
 uniform sampler2D tex2;
 uniform samplerCube cubeMap;
 uniform mat4 mdlMatrix;
+uniform vec3 camPos;
+uniform vec3 offset;
 
-float shade,diffuse,specular,cosAng;
+float shade,diffuse,specular,cosAng,fogFactor;
 int specularExponent = 3;
 
 void main(void)
@@ -38,12 +40,26 @@ void main(void)
     cosAng = max(0.0,dot(reflectDir,eyeDir));
     specular = pow(cosAng,specularExponent);
 
+    float dist = abs(length(camPos - vec3(pos)));
+    float horizon = 900;
+    float world = 350;
+    
+    if (dist < world)
+    {
+        fogFactor = 1;
+    }
+    else if (dist > horizon)
+    {
+    fogFactor = 0;
+    }
+    else{
+        fogFactor = world/dist;
+    }
     
     // Out Color
-    outColor2 = mix(texture(tex1,texCoord),texture(tex2,texCoord),0.3);
-    outColor1 = vec4(0.5*(diffuse + specular), 0.5*(diffuse + specular), 0.5*(diffuse + specular),1);
+    outColor2 = vec4(texture(tex1,texCoord).xyz,fogFactor);
+    outColor1 = vec4(0.5*(diffuse + specular), 0.5*(diffuse + specular), 0.5*(diffuse + specular),fogFactor);
     outColor = outColor1*outColor2;
-
 
 
 }

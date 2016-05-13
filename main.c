@@ -137,19 +137,19 @@ mat4 placeModelOnGround(float x, float z)
 void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix)
 {
 	int terrainOffset = 510;
-    int refOffset = 206;
-	vec3 xAxis = SetVector(1,0,0);
+
+
 	vec3 dirVect = Normalize(VectorSub(rocketPoint,cam));
-	float cosAlpha = DotProduct(dirVect,xAxis);
+
 	float xPosPatch = floor(cam.x/512);
 	float zPosPatch = floor(cam.z/512);
 
 	mat4 terrainTrans = T(xPosPatch*terrainOffset,0,zPosPatch*terrainOffset);
 	mat4 total = Mult(camMatrix, terrainTrans);
-	//glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
-    //DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
  
+
     float frustumAngle = pi/8;
+
     mat4 planeRotPos = Ry(frustumAngle);
     mat4 planeRotNeg = Ry(-frustumAngle);
     
@@ -161,6 +161,7 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix)
     
     float rightD = -DotProduct(rightPlane,VectorSub(cam,ScalarMult(Normalize(dirVect),10)));
     float leftD = -DotProduct(leftPlane,VectorSub(cam,ScalarMult(Normalize(dirVect),10)));
+
     
     vec4 rightHomPlane;
     rightHomPlane.x = rightPlane.x;
@@ -185,10 +186,11 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix)
     
     glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
     DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
-    
+
     int numberOfPatches = 3;
     for (int i = -numberOfPatches; i<numberOfPatches; i++) {
         for (int j = -numberOfPatches; j<numberOfPatches; j++) {
+
             vec4 gridPoint1;
             gridPoint1.x = (i+ xPosPatch)*terrainOffset;
             gridPoint1.y = 0;
@@ -224,9 +226,6 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix)
             
             scalarGrid41 = rightHomPlane.x*gridPoint4.x + rightHomPlane.y*gridPoint4.y + rightHomPlane.z*gridPoint4.z + rightHomPlane.w*gridPoint4.w;
             scalarGrid42 = leftHomPlane.x*gridPoint4.x + leftHomPlane.y*gridPoint4.y + leftHomPlane.z*gridPoint4.z + leftHomPlane.w*gridPoint4.w;
-            
-            
-            
             
             if ((scalarGrid11<0 && scalarGrid12<0) || (scalarGrid21<0 && scalarGrid22<0) || (scalarGrid31<0 && scalarGrid32<0) || (scalarGrid41<0 && scalarGrid42<0)) {
                 
@@ -271,9 +270,6 @@ void display(void)
     	rocketVel.y = rocketVel.y-gravVel;
     }
     
-
-   
-    
     rocketPoint = VectorAdd(rocketPoint,rocketVel);
 	
 	mat4 total, modelView, camMatrix;
@@ -314,14 +310,17 @@ void display(void)
     glUseProgram(program);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-
+    
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	//send to shaders & draw
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
 	glUniformMatrix4fv(glGetUniformLocation(program, "camMatrix"), 1, GL_TRUE, modelView.m);
+    glUniform3f(glGetUniformLocation(program, "camPos"), cam.x, cam.y,cam.z);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
+	glBindTexture(GL_TEXTURE_2D, tex1); // Bind Our Texture tex1
 	drawTerrain(cam,rocketPoint, camMatrix);
-	//DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
+    glDisable(GL_BLEND);
    
 	//----------
 	// WATER
@@ -341,12 +340,6 @@ void display(void)
 	//Transformation matrix for water
 
     mat3 inverseCam = InvertMat3(mat4tomat3(camMatrix));
-
-    /*mat4 scaleWater = S(3,1,3);
-	mat4 waterModelView = T(-450,-10,-450);
->>>>>>> 39097102702da82a6aac45aaaf11cfc786d36bee
-    waterModelView = Mult(waterModelView,scaleWater);
-    */
 
 	moveFactor = moveFactor + waveSpeed*t;
 	moveFactor = fmod(moveFactor,1) + 0.1;
