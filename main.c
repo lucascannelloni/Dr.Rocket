@@ -33,7 +33,7 @@ float waveSpeed = 0.01f;
 float moveFactor = 0.1;
 int texwidth;
 int texheight;
-int waterLevel = 3;
+int waterLevel = 67;
 GLfloat tiltAngle;
 bool isGameOver = false;
 
@@ -356,6 +356,13 @@ void display(void)
     if(isGameOver)
     {
        sfDrawString(270, 100, "game over");
+        sfDrawString(250, 150, "press g to restart");
+        if(glutKeyIsDown('g'))
+        {
+            isGameOver = false;
+            rocketPoint = startPoint;
+            tiltAngle = 0;
+        }
     }
 	glutSwapBuffers();
 }
@@ -405,7 +412,7 @@ void mouse(int x, int y)
 bool gameOver(bool gameOver)
 {
     isGameOver = true;
-    rocketPoint = startPoint;
+    rocketVel = SetVector(0,0,0);
 }
 
 int main(int argc, char **argv)
