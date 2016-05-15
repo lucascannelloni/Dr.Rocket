@@ -14,7 +14,9 @@ mat4 keyHandler(vec3* cam, vec3* cameraUp, Model* tm, vec3* rocketPoint,vec3* ro
     vec3 orthRocketVect = CrossProduct(dirVect, *cameraUp);
     
     float groundHeight = heightCalc(fmod(abs(rocketPoint->x),255), fmod(abs(rocketPoint->z),255), tm);
-   // printf("rocketPy %f\n", fmod(rocketPoint->y,255));
+    printf("rocketPy %f\n",rocketPoint->y);
+    printf("rocketPx %f\n",rocketPoint->x);
+    printf("rocketPz %f\n",rocketPoint->z);
     printf("GH %f\n", groundHeight);
     float rocketOffset = 0;
     if (rocketPoint->y<groundHeight+rocketOffset && fabsf(rocketVel->y) < 2  && fabsf(tiltAngle) < 0.5f)

@@ -19,7 +19,8 @@
 
 mat4 projectionMatrix;
 vec3 cam = {50, 20, 40};
-vec3 rocketPoint = {50, 70, 50};
+vec3 startPoint = {103, 77, 46};
+vec3 rocketPoint;
 vec3 rocketTopPoint = {50, 80, 50};
 vec3 rocketVel = {0,0,0};
 vec3 cameraUp = {0,1,0};
@@ -47,6 +48,7 @@ TextureData skyTex[6];
 
 void init(void)
 {
+    rocketPoint = startPoint;
 	// GL inits
 	glClearColor(0.2,0.2,0.5,0);
 	glEnable(GL_DEPTH_TEST);
@@ -253,8 +255,8 @@ void display(void)
     if (rocketPoint.y > rocketOffset)
     {
     	rocketVel.y = rocketVel.y-gravVel;
-        rocketVel.x = 0.999*rocketVel.x;
-        rocketVel.z = 0.999*rocketVel.z;
+        rocketVel.x = 0.99*rocketVel.x;
+        rocketVel.z = 0.99*rocketVel.z;
     }
     
     rocketPoint = VectorAdd(rocketPoint,rocketVel);
@@ -321,7 +323,7 @@ void display(void)
 	// ROCKET
 	//---------
 	// translate and rotate Rocket
-    mat4 scaleRocket = S(0.5,0.25,0.5);
+    mat4 scaleRocket = S(0.25,0.125,0.25);
     mat4 scaleFire = S(0.005,-0.4*fabsf(sin(10*t)),0.005);
     mat4 fireTrans = T(-1.4,0,-1.4);
 	glUseProgram(programRocket);
@@ -395,7 +397,7 @@ void mouse(int x, int y)
     cameraFront.y = sin(pi*pitch/180);
     cameraFront.z = sin(pi*yaw/180) * cos(pi*pitch/180);
     cameraFront = Normalize(cameraFront);
-    cameraFront = ScalarMult(cameraFront,30);
+    cameraFront = ScalarMult(cameraFront,10);
     
     cam = VectorSub(rocketPoint,cameraFront);
 }
@@ -403,6 +405,7 @@ void mouse(int x, int y)
 bool gameOver(bool gameOver)
 {
     isGameOver = true;
+    rocketPoint = startPoint;
 }
 
 int main(int argc, char **argv)

@@ -52,8 +52,8 @@ void main(void)
     
     //vec4 outColor1 = texture(cubeMap, reflectDistortion);
     float dist = abs(length(vec3(pos)));
-    float horizon = 1200;
-    float world = 900;
+    float horizon = 1100;
+    float world = 800;
     
     if (dist < world)
     {
