@@ -264,10 +264,11 @@ float heightCalc(float x, float z, Model* tm)
     float y3 = tm->vertexArray[(xCeil + (zCeil - 1)*texWidthTerrain)*3 + 1];
     float y4 = tm->vertexArray[(xCeil - 1 + (zCeil - 1)*texWidthTerrain)*3 + 1];
         
-        printf("y1 %f\n", y1);
+    /*    printf("y1 %f\n", y1);
         printf("y2 %f\n", y2);
         printf("y3 %f\n", y3);
         printf("y4 %f\n", y4);
+     */
 
     float xe = xCeil - x;
     float ze = zCeil - z;

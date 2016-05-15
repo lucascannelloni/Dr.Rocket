@@ -57,7 +57,7 @@ void main(void)
     
     if (dist < world)
     {
-        fogFactor = 0.92;
+        fogFactor = 1;
     }
     else if (dist > horizon)
     {

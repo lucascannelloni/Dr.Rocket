@@ -73,10 +73,6 @@ void init(void)
 	// Load terrain data
 	LoadTGATextureData("maskHeight.tga", &ttex);
 	tm = GenerateTerrain(&ttex);
-    
-	LoadTGATextureData("maskHeight2.tga", &ttex2);
-	tm2 = GenerateTerrain(&ttex2);
-	printError("init terrain");
 
 	//WATER
 	LoadTGATextureData("waterlevel.tga", &water);
@@ -257,6 +253,8 @@ void display(void)
     if (rocketPoint.y > rocketOffset)
     {
     	rocketVel.y = rocketVel.y-gravVel;
+        rocketVel.x = 0.999*rocketVel.x;
+        rocketVel.z = 0.999*rocketVel.z;
     }
     
     rocketPoint = VectorAdd(rocketPoint,rocketVel);
@@ -388,10 +386,10 @@ void mouse(int x, int y)
     yaw  = yaw + xoffset;
     pitch = pitch + yoffset;
 
-    if(pitch > 70.0f)
-        pitch = 70.0f;
-    if(pitch < -70.0f)
-        pitch = -70.0f;
+    if(pitch > 60.0f)
+        pitch = 60.0f;
+    if(pitch < -60.0f)
+        pitch = -60.0f;
 
     cameraFront.x = cos(pi*yaw/180) * cos(pi*pitch/180);
     cameraFront.y = sin(pi*pitch/180);
