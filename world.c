@@ -4,6 +4,7 @@
 
 int texwidth;
 int texheight;
+int texWidthTerrain = 256;
 
 
 
@@ -164,6 +165,7 @@ Model* GenerateTerrain(TextureData *tex)
 	int x, z;
 
 	texwidth = tex->width;
+    printf("texWIDTH %i\n", texwidth);
 	texheight = tex->height;
 	
 	GLfloat *vertexArray = malloc(sizeof(GLfloat) * 3 * vertexCount);
@@ -250,13 +252,22 @@ Model* GenerateTerrain(TextureData *tex)
 
 float heightCalc(float x, float z, Model* tm)
 {
+    
     int xCeil = ceil(x);
     int zCeil = ceil(z);
-
-    float y1 = tm->vertexArray[(xCeil + zCeil*texwidth)*3 + 1];
-    float y2 = tm->vertexArray[(xCeil - 1 + zCeil*texwidth)*3 + 1];
-    float y3 = tm->vertexArray[(xCeil + (zCeil - 1)*texwidth)*3 + 1];
-    float y4 = tm->vertexArray[(xCeil - 1 + (zCeil - 1)*texwidth)*3 + 1];
+    if (xCeil < 1 || xCeil > 254 || zCeil < 1 || zCeil > 254)
+    { float y = 0;
+        return y;
+    }else{
+    float y1 = tm->vertexArray[(xCeil + zCeil*texWidthTerrain)*3 + 1];
+    float y2 = tm->vertexArray[(xCeil - 1 + zCeil*texWidthTerrain)*3 + 1];
+    float y3 = tm->vertexArray[(xCeil + (zCeil - 1)*texWidthTerrain)*3 + 1];
+    float y4 = tm->vertexArray[(xCeil - 1 + (zCeil - 1)*texWidthTerrain)*3 + 1];
+        
+        printf("y1 %f\n", y1);
+        printf("y2 %f\n", y2);
+        printf("y3 %f\n", y3);
+        printf("y4 %f\n", y4);
 
     float xe = xCeil - x;
     float ze = zCeil - z;
@@ -264,6 +275,7 @@ float heightCalc(float x, float z, Model* tm)
     float B = y2*xe + y1*(1-xe);
     float y = A*ze + B*(1-ze);
     return y;
+    }
 }
 
 void waterCheck(vec3* rocketPoint, int* waterLevel)

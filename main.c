@@ -75,7 +75,7 @@ void init(void)
 	tm = GenerateTerrain(&ttex);
     
 	LoadTGATextureData("maskHeight2.tga", &ttex2);
-	tm2 = GenerateTerrain(&ttex);
+	tm2 = GenerateTerrain(&ttex2);
 	printError("init terrain");
 
 	//WATER
@@ -125,7 +125,7 @@ void init(void)
 }
 
 
-mat4 placeModelOnGround(float x, float z)
+/*mat4 placeModelOnGround(float x, float z)
 {
  	float y = heightCalc(x,z,tm);
  	printf("x %f\n", x);
@@ -133,7 +133,7 @@ mat4 placeModelOnGround(float x, float z)
  	printf("z %f\n", z);
  	mat4 trans = T(x,y,z);
  	return trans;
-}
+}*/
 
 void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix, mat3 inverseCam, float moveFactor)
 {
@@ -200,8 +200,8 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix, mat3 inverseCam, flo
 
     int numberOfPatches = 3;
     
-    for (int i = -numberOfPatches; i<numberOfPatches; i++) {
-        for (int j = -numberOfPatches; j<numberOfPatches; j++) {
+    for (int i = -numberOfPatches; i<numberOfPatches+1; i++) {
+        for (int j = -numberOfPatches; j<numberOfPatches+1; j++) {
 
             vec3 gridPoint1;
             gridPoint1.x = (i+ xPosPatch)*terrainOffset + terrainOffset/2;
@@ -218,7 +218,7 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix, mat3 inverseCam, flo
             {
               //  printf("drawn patch\n");
                 // TERRAIN
-               // glEnable(GL_POLYGON_SMOOTH);
+                glEnable(GL_POLYGON_SMOOTH);
                 glUseProgram(program);
                 mat4 terrainTrans2 = T(terrainOffset*i,0,terrainOffset*j);
                 mat4 total2 = Mult(total, terrainTrans2);
