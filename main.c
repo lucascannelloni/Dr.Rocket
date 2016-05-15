@@ -139,7 +139,7 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix, mat3 inverseCam, flo
 {
     glUseProgram(program);
     
-	int terrainOffset = 256;
+	int terrainOffset = 255;
     float diagTerrain = terrainOffset/sqrt(2);
 	vec3 dirVect = VectorSub(rocketPoint,cam);
 
@@ -196,7 +196,7 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix, mat3 inverseCam, flo
     glUniform3f(glGetUniformLocation(programWater, "camPos"), cam.x, cam.y,cam.z);
     glUniformMatrix4fv(glGetUniformLocation(programWater, "mdlMatrix"), 1, GL_TRUE, terrainTrans.m);
    // DrawModel(waterModel, programWater, "inPosition", "inNormal", NULL);
-    printf("Enter forloop\n");
+    //printf("Enter forloop\n");
 
     int numberOfPatches = 3;
     
@@ -216,7 +216,7 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix, mat3 inverseCam, flo
             
             if (scalarGridRight<(rightD + diagTerrain) && scalarGridLeft<(leftD + diagTerrain))// || (scalarGridUp < (upD + diagTerrain) && scalarGridDown < (downD + diagTerrain)))
             {
-                printf("drawn patch\n");
+              //  printf("drawn patch\n");
                 // TERRAIN
                // glEnable(GL_POLYGON_SMOOTH);
                 glUseProgram(program);
@@ -388,10 +388,10 @@ void mouse(int x, int y)
     yaw  = yaw + xoffset;
     pitch = pitch + yoffset;
 
-    if(pitch > 80.0f)
-        pitch = 80.0f;
-    if(pitch < -80.0f)
-        pitch = -80.0f;
+    if(pitch > 70.0f)
+        pitch = 70.0f;
+    if(pitch < -70.0f)
+        pitch = -70.0f;
 
     cameraFront.x = cos(pi*yaw/180) * cos(pi*pitch/180);
     cameraFront.y = sin(pi*pitch/180);
