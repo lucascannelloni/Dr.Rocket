@@ -37,7 +37,7 @@ GLfloat tiltAngle;
 bool isGameOver = false;
 
 // vertex array object
-Model *m, *m2, *tm,*tm2,*rocketFire, *skybox,*box[6],*rocketObject,*waterModel,*terrainArray[4];
+Model *m, *m2, *tm,*tm2,*rocketFire, *skybox,*box[6],*rocketObject,*waterModel;
 
 // Reference to shader program
 GLuint program,programSky,programWater, programRocket;
@@ -73,6 +73,7 @@ void init(void)
 	// Load terrain data
 	LoadTGATextureData("maskHeight.tga", &ttex);
 	tm = GenerateTerrain(&ttex);
+    
 	LoadTGATextureData("maskHeight2.tga", &ttex2);
 	tm2 = GenerateTerrain(&ttex);
 	printError("init terrain");
@@ -134,123 +135,111 @@ mat4 placeModelOnGround(float x, float z)
  	return trans;
 }
 
-void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix)
+void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix, mat3 inverseCam, float moveFactor)
 {
-	int terrainOffset = 510;
+    glUseProgram(program);
+    
+	int terrainOffset = 256;
+    float diagTerrain = terrainOffset/sqrt(2);
+	vec3 dirVect = VectorSub(rocketPoint,cam);
 
-
-	vec3 dirVect = Normalize(VectorSub(rocketPoint,cam));
-
-	float xPosPatch = floor(cam.x/512);
-	float zPosPatch = floor(cam.z/512);
+	float xPosPatch = floor(cam.x/256);
+	float zPosPatch = floor(cam.z/256);
 
 	mat4 terrainTrans = T(xPosPatch*terrainOffset,0,zPosPatch*terrainOffset);
 	mat4 total = Mult(camMatrix, terrainTrans);
- 
 
-    float frustumAngle = pi/8;
+    float frustumAngle = pi/4;
 
     mat4 planeRotPos = Ry(frustumAngle);
     mat4 planeRotNeg = Ry(-frustumAngle);
     
+   // vec3 rotVect = CrossProduct(SetVector(0,1,0),dirVect);
+   // mat4 planeRotUp = ArbRotate(dirVect,frustumAngle);
+   // mat4 planeRotDown = ArbRotate(dirVect,-frustumAngle);
+    
+    
     vec3 rightVect = MultVec3(planeRotNeg,dirVect);
     vec3 leftVect = MultVec3(planeRotPos,dirVect);
+  //  vec3 upVect = MultVec3(planeRotUp,dirVect);
+   // vec3 downVect = MultVec3(planeRotDown,dirVect);
     
     vec3 rightPlane = Normalize(CrossProduct(SetVector(0,1,0),rightVect));
     vec3 leftPlane = Normalize(CrossProduct(SetVector(0,-1,0),leftVect));
+ //   vec3 upPlane = Normalize(CrossProduct(SetVector(0,1,0),upVect));
+ //   vec3 downPlane = Normalize(CrossProduct(SetVector(0,-1,0),downVect));
     
-    float rightD = -DotProduct(rightPlane,VectorSub(cam,ScalarMult(Normalize(dirVect),10)));
-    float leftD = -DotProduct(leftPlane,VectorSub(cam,ScalarMult(Normalize(dirVect),10)));
+    float rightD = DotProduct(rightPlane,cam);//VectorSub(cam,ScalarMult(Normalize(dirVect),terrainOffset/sqrt(2))));
+    float leftD = DotProduct(leftPlane,cam);//VectorSub(cam,ScalarMult(Normalize(dirVect),terrainOffset/sqrt(2))));
+//    float upD = DotProduct(upPlane,cam);
+//    float downD = DotProduct(downPlane,cam);
 
+   //rightPlane = SetVector(rightPlane.x/rightD,rightPlane.y/rightD,rightPlane.z/rightD);
+   //leftPlane = SetVector(leftPlane.x/leftD,leftPlane.y/leftD,leftPlane.z/leftD);
     
-    vec4 rightHomPlane;
-    rightHomPlane.x = rightPlane.x;
-    rightHomPlane.y = rightPlane.y;
-    rightHomPlane.z = rightPlane.z;
-    rightHomPlane.w = rightD;
+    float scalarGridRight;
+    float scalarGridLeft;
+ //   float scalarGridUp;
+ //   float scalarGridDown;
     
-    vec4 leftHomPlane;
-    leftHomPlane.x = leftPlane.x;
-    leftHomPlane.y = leftPlane.y;
-    leftHomPlane.z = leftPlane.z;
-    leftHomPlane.w = leftD;
-    
-    float scalarGrid11;
-    float scalarGrid12;
-    float scalarGrid21;
-    float scalarGrid22;
-    float scalarGrid31;
-    float scalarGrid32;
-    float scalarGrid41;
-    float scalarGrid42;
-    
-    glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
-    DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
+   // glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
+   // DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
+
+    glUseProgram(programWater);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(dudvTex,2);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(NormalTex,3);
+    glUniform1f(glGetUniformLocation(programWater,"moveFactor"),moveFactor);
+    glUniformMatrix4fv(glGetUniformLocation(programWater, "camMatrix"), 1, GL_TRUE, camMatrix.m);
+    glUniformMatrix3fv(glGetUniformLocation(programWater, "InvCamMatrix"), 1, GL_TRUE, inverseCam.m);
+    glUniform3f(glGetUniformLocation(programWater, "camPos"), cam.x, cam.y,cam.z);
+    glUniformMatrix4fv(glGetUniformLocation(programWater, "mdlMatrix"), 1, GL_TRUE, terrainTrans.m);
+   // DrawModel(waterModel, programWater, "inPosition", "inNormal", NULL);
+    printf("Enter forloop\n");
 
     int numberOfPatches = 3;
+    
     for (int i = -numberOfPatches; i<numberOfPatches; i++) {
         for (int j = -numberOfPatches; j<numberOfPatches; j++) {
 
-            vec4 gridPoint1;
-            gridPoint1.x = (i+ xPosPatch)*terrainOffset;
+            vec3 gridPoint1;
+            gridPoint1.x = (i+ xPosPatch)*terrainOffset + terrainOffset/2;
             gridPoint1.y = 0;
-            gridPoint1.z = (j+ zPosPatch)*terrainOffset;
-            gridPoint1.w = 1;
+            gridPoint1.z = (j+ zPosPatch)*terrainOffset + terrainOffset/2;
             
-            vec4 gridPoint2;
-            gridPoint2.x = (i+1+ xPosPatch)*terrainOffset;
-            gridPoint2.y = 0;
-            gridPoint2.z = (j+ zPosPatch)*terrainOffset;
-            gridPoint2.w = 1;
+            scalarGridRight = DotProduct(gridPoint1,rightPlane);
+            scalarGridLeft = DotProduct(gridPoint1,leftPlane);
+           // scalarGridUp = DotProduct(gridPoint1,upPlane);
+           // scalarGridDown = DotProduct(gridPoint1,downPlane);
+
             
-            vec4 gridPoint3;
-            gridPoint3.x = (i+ xPosPatch)*terrainOffset;
-            gridPoint3.y = 0;
-            gridPoint3.z = (j+1+ zPosPatch)*terrainOffset;
-            gridPoint3.w = 1;
-            
-            vec4 gridPoint4;
-            gridPoint4.x = (i+1+ xPosPatch)*terrainOffset;
-            gridPoint4.y = 0;
-            gridPoint4.z = (j+1+ zPosPatch)*terrainOffset;
-            gridPoint4.w = 1;
-            
-            scalarGrid11 = rightHomPlane.x*gridPoint1.x + rightHomPlane.y*gridPoint1.y + rightHomPlane.z*gridPoint1.z + rightHomPlane.w*gridPoint1.w;
-            scalarGrid12 = leftHomPlane.x*gridPoint1.x + leftHomPlane.y*gridPoint1.y + leftHomPlane.z*gridPoint1.z + leftHomPlane.w*gridPoint1.w;
-            
-            scalarGrid21 = rightHomPlane.x*gridPoint2.x + rightHomPlane.y*gridPoint2.y + rightHomPlane.z*gridPoint2.z + rightHomPlane.w*gridPoint2.w;
-            scalarGrid22 = leftHomPlane.x*gridPoint2.x + leftHomPlane.y*gridPoint2.y + leftHomPlane.z*gridPoint2.z + leftHomPlane.w*gridPoint2.w;
-            
-            scalarGrid31 = rightHomPlane.x*gridPoint3.x + rightHomPlane.y*gridPoint3.y + rightHomPlane.z*gridPoint3.z + rightHomPlane.w*gridPoint3.w;
-            scalarGrid32 = leftHomPlane.x*gridPoint3.x + leftHomPlane.y*gridPoint3.y + leftHomPlane.z*gridPoint3.z + leftHomPlane.w*gridPoint3.w;
-            
-            scalarGrid41 = rightHomPlane.x*gridPoint4.x + rightHomPlane.y*gridPoint4.y + rightHomPlane.z*gridPoint4.z + rightHomPlane.w*gridPoint4.w;
-            scalarGrid42 = leftHomPlane.x*gridPoint4.x + leftHomPlane.y*gridPoint4.y + leftHomPlane.z*gridPoint4.z + leftHomPlane.w*gridPoint4.w;
-            
-            if ((scalarGrid11<0 && scalarGrid12<0) || (scalarGrid21<0 && scalarGrid22<0) || (scalarGrid31<0 && scalarGrid32<0) || (scalarGrid41<0 && scalarGrid42<0)) {
-                
+            if (scalarGridRight<(rightD + diagTerrain) && scalarGridLeft<(leftD + diagTerrain))// || (scalarGridUp < (upD + diagTerrain) && scalarGridDown < (downD + diagTerrain)))
+            {
+                printf("drawn patch\n");
+                // TERRAIN
+               // glEnable(GL_POLYGON_SMOOTH);
+                glUseProgram(program);
                 mat4 terrainTrans2 = T(terrainOffset*i,0,terrainOffset*j);
-                terrainTrans2 = T(terrainOffset*i,0,terrainOffset*j);
                 mat4 total2 = Mult(total, terrainTrans2);
-                
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, tex1);
+
                 glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total2.m);
                 DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
+                
+                // WATER
+                glUseProgram(programWater);
+                glActiveTexture(GL_TEXTURE1);
+                glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
+                
+                mat4 waterTot = Mult(terrainTrans,terrainTrans2);
+                glUniformMatrix4fv(glGetUniformLocation(programWater, "mdlMatrix"), 1, GL_TRUE, waterTot.m);
+                glUniformMatrix4fv(glGetUniformLocation(programWater, "mdlMatrixTerrain"), 1, GL_TRUE, total2.m);
+                DrawModel(waterModel, programWater, "inPosition", "inNormal", NULL);
             }
     }
     }
-}
-
-void drawWater(vec3 cam, mat4 camMatrix)
-{
-	float waterOffset = 510;
-	float xPosPatch = floor(cam.x/waterOffset);
-	float zPosPatch = floor(cam.z/waterOffset);
-
-	mat4 scaleWater = S(3,1,3);
-	mat4 waterModelView = T(-440 + xPosPatch*waterOffset,waterLevel,-440+ zPosPatch*waterOffset);
-    mat4 waterModel = Mult(waterModelView,scaleWater);
-
-	glUniformMatrix4fv(glGetUniformLocation(programWater, "mdlMatrix"), 1, GL_TRUE, waterModel.m);
 }
 
 void display(void)
@@ -273,13 +262,14 @@ void display(void)
     rocketPoint = VectorAdd(rocketPoint,rocketVel);
 	
 	mat4 total, modelView, camMatrix;
-	printError("pre display");
+	//printError("pre display");
 
 	// Key handler for update of Rocket position and orientation, camera pos etc
 	mat4 rocketRotate = keyHandler(&cam,&cameraUp,tm, &rocketPoint, &rocketVel, &rocketTopPoint);
 	camMatrix = lookAt(cam.x, cam.y, cam.z,
 				rocketPoint.x, rocketPoint.y, rocketPoint.z,
 				cameraUp.x,cameraUp.y,cameraUp.z);
+    mat3 inverseCam = InvertMat3(mat4tomat3(camMatrix));
 
 	// -------
 	// SKYBOX
@@ -304,7 +294,7 @@ void display(void)
 	glEnable(GL_DEPTH_TEST);
 	
 	//----------
-	// TERRAIN
+	// TERRAIN & WATER
 	//----------
 	// send cubemap to terrain shaders as well (i think)
     glUseProgram(program);
@@ -313,50 +303,19 @@ void display(void)
     
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
 	//send to shaders & draw
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
 	glUniformMatrix4fv(glGetUniformLocation(program, "camMatrix"), 1, GL_TRUE, modelView.m);
     glUniform3f(glGetUniformLocation(program, "camPos"), cam.x, cam.y,cam.z);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex1); // Bind Our Texture tex1
-	drawTerrain(cam,rocketPoint, camMatrix);
-    glDisable(GL_BLEND);
-   
-	//----------
-	// WATER
-	//----------
-
-   // glEnable (GL_BLEND);
-    //glBlendFunc (GL_ONE, GL_ONE);
-   // glBlendFunc(GL_ONE_MINUS_DST_ALPHA,GL_DST_ALPHA);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
     
-    glUseProgram(programWater);
-	glActiveTexture(GL_TEXTURE1); //IS THIS NESSESARY?
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-
-	//Transformation matrix for water
-
-    mat3 inverseCam = InvertMat3(mat4tomat3(camMatrix));
-
-	moveFactor = moveFactor + waveSpeed*t;
-	moveFactor = fmod(moveFactor,1) + 0.1;
-
-	drawWater(cam,camMatrix);
-	glUniformMatrix4fv(glGetUniformLocation(programWater, "camMatrix"), 1, GL_TRUE, camMatrix.m);
-    glUniformMatrix3fv(glGetUniformLocation(programWater, "InvCamMatrix"), 1, GL_TRUE, inverseCam.m);
-    glUniform3f(glGetUniformLocation(programWater, "camPos"), cam.x, cam.y,cam.z);
-
-    glUniform1f(glGetUniformLocation(programWater, "moveFactor"), moveFactor);
-	glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, dudvTex);
-	glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, NormalTex);
-
-	DrawModel(waterModel, programWater, "inPosition", "inNormal", NULL);
-
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, tex1);
+    
+    moveFactor = moveFactor + waveSpeed*t;
+    moveFactor = fmod(moveFactor,0.9) + 0.1;
+	drawTerrain(cam,rocketPoint, camMatrix, inverseCam, moveFactor);
+    
 	glDisable(GL_BLEND);
 
 
@@ -377,7 +336,7 @@ void display(void)
 	// bind texture, send to shader & draw model
 	glActiveTexture(GL_TEXTURE0);
 
-	glBindTexture(GL_TEXTURE_2D, texRocket );
+	glBindTexture(GL_TEXTURE_2D, texRocket);
 	glUniform1i(glGetUniformLocation(programRocket, "objectFlag"), 1);
 	glUniform1i(glGetUniformLocation(programRocket, "texRocket"), 0);
 	glUniformMatrix4fv(glGetUniformLocation(programRocket, "mdlMatrix"), 1, GL_TRUE, rocketTotal.m);
@@ -393,7 +352,7 @@ void display(void)
         DrawModel(rocketFire, programRocket, "inPosition", "inNormal", "inTexCoord");
     }
 	
-	printError("display 2");
+	//printError("display 2");
     if(isGameOver)
     {
        sfDrawString(270, 100, "game over");
@@ -429,16 +388,16 @@ void mouse(int x, int y)
     yaw  = yaw + xoffset;
     pitch = pitch + yoffset;
 
-    if(pitch > 89.0f)
-        pitch = 89.0f;
-    if(pitch < -89.0f)
-        pitch = -89.0f;
+    if(pitch > 80.0f)
+        pitch = 80.0f;
+    if(pitch < -80.0f)
+        pitch = -80.0f;
 
     cameraFront.x = cos(pi*yaw/180) * cos(pi*pitch/180);
     cameraFront.y = sin(pi*pitch/180);
     cameraFront.z = sin(pi*yaw/180) * cos(pi*pitch/180);
     cameraFront = Normalize(cameraFront);
-    cameraFront = ScalarMult(cameraFront,50);
+    cameraFront = ScalarMult(cameraFront,30);
     
     cam = VectorSub(rocketPoint,cameraFront);
 }

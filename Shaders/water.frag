@@ -9,7 +9,6 @@ uniform sampler2D dudvMap;
 uniform sampler2D refractTex;
 uniform sampler2D normalMap;
 uniform float moveFactor;
-uniform vec3 offset;
 
 in vec2 texCoord;
 in vec3 reflectedView;
@@ -18,7 +17,7 @@ in vec3 fromLightVect;
 in vec3 toCameraVect;
 in vec4 pos;
 
-const float waveStrength = 0.05;
+const float waveStrength = 0.06;
 const vec3 lightColor = vec3(0.6,0.4,0.3);
 const float shineDamper = 20.0;
 const float reflectivity = 0.6;
@@ -32,8 +31,8 @@ void main(void)
     vec2 totalDistortion = distortion1 + distortion2;
     */
     
-    vec2 distortedTexCoords = texture(dudvMap, vec2(texCoord.x + moveFactor*100, texCoord.y)).rg*0.1;
-    distortedTexCoords = texCoord + vec2(distortedTexCoords.x, distortedTexCoords.y+moveFactor*100);
+    vec2 distortedTexCoords = texture(dudvMap, vec2(texCoord.x + moveFactor*200, texCoord.y)).rg*0.1;
+    distortedTexCoords = texCoord + vec2(distortedTexCoords.x, distortedTexCoords.y+moveFactor*200);
     vec2 totalDistortion = (texture(dudvMap, distortedTexCoords).rg * 2.0 - 1.0) * waveStrength;
     
     vec3 reflectDistortion = vec3(totalDistortion.x,totalDistortion.y,0) + normalize(reflectedView);
@@ -52,17 +51,17 @@ void main(void)
     vec3 specularHighlights = lightColor * specular * reflectivity;
     
     //vec4 outColor1 = texture(cubeMap, reflectDistortion);
-    float dist = abs(length(cameraPos - vec3(pos)));
-    float horizon = 1000;
-    float world = 400;
+    float dist = abs(length(vec3(pos)));
+    float horizon = 1200;
+    float world = 900;
     
     if (dist < world)
     {
-        fogFactor = 1;
+        fogFactor = 0.92;
     }
     else if (dist > horizon)
     {
-        fogFactor = 0;
+        fogFactor = 0.02;
     }
     else{
         fogFactor = world/dist;
