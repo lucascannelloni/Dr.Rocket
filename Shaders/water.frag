@@ -17,7 +17,7 @@ in vec3 fromLightVect;
 in vec3 toCameraVect;
 in vec4 pos;
 
-const float waveStrength = 0.06;
+const float waveStrength = 0.05;
 const vec3 lightColor = vec3(0.6,0.4,0.3);
 const float shineDamper = 20.0;
 const float reflectivity = 0.6;
@@ -31,8 +31,8 @@ void main(void)
     vec2 totalDistortion = distortion1 + distortion2;
     */
     
-    vec2 distortedTexCoords = texture(dudvMap, vec2(texCoord.x + moveFactor*200, texCoord.y)).rg*0.1;
-    distortedTexCoords = texCoord + vec2(distortedTexCoords.x, distortedTexCoords.y+moveFactor*200);
+    vec2 distortedTexCoords = texture(dudvMap, vec2(texCoord.x + moveFactor*100, texCoord.y)).rg*0.1;
+    distortedTexCoords = texCoord + vec2(distortedTexCoords.x, distortedTexCoords.y+moveFactor*100);
     vec2 totalDistortion = (texture(dudvMap, distortedTexCoords).rg * 2.0 - 1.0) * waveStrength;
     
     vec3 reflectDistortion = vec3(totalDistortion.x,totalDistortion.y,0) + normalize(reflectedView);

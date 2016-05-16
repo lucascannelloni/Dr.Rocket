@@ -19,9 +19,9 @@
 
 mat4 projectionMatrix;
 vec3 cam = {50, 20, 40};
-vec3 startPoint = {103, 77, 46};
+vec3 startPoint = {103, 76, 46};
 vec3 rocketPoint;
-vec3 rocketTopPoint = {50, 80, 50};
+vec3 rocketTopPoint = {103, 80, 46};
 vec3 rocketVel = {0,0,0};
 vec3 cameraUp = {0,1,0};
 vec3 cameraFront;
@@ -34,6 +34,8 @@ float moveFactor = 0.1;
 int texwidth;
 int texheight;
 int waterLevel = 67;
+float fuel;
+float fullTank = 80;
 GLfloat tiltAngle;
 bool isGameOver = false;
 
@@ -49,6 +51,7 @@ TextureData skyTex[6];
 void init(void)
 {
     rocketPoint = startPoint;
+    fuel = fullTank;
 	// GL inits
 	glClearColor(0.2,0.2,0.5,0);
 	glEnable(GL_DEPTH_TEST);
@@ -114,7 +117,7 @@ void init(void)
     rocketObject = LoadModelPlus("Objects/redstoneRocket.obj");
     glUniform1i(glGetUniformLocation(programRocket, "texRocket"), 0); // Texture unit 0
     glUniformMatrix4fv(glGetUniformLocation(programRocket, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
-    LoadTGATextureSimple("Objects/redstoneRocket2.tga", &texRocket);
+    LoadTGATextureSimple("Objects/redstoneRocket3.tga", &texRocket);
     
     //rocket fire
     LoadTGATextureData("grass.tga", &fire);
@@ -252,11 +255,17 @@ void display(void)
     
     GLfloat gravVel = 0.02f;
     float rocketOffset = 10;
-    if (rocketPoint.y > rocketOffset)
+    if (rocketPoint.y > rocketOffset && (rocketVel.x != 0 || rocketVel.y != 0 || rocketVel.z != 0))
     {
     	rocketVel.y = rocketVel.y-gravVel;
         rocketVel.x = 0.99*rocketVel.x;
         rocketVel.z = 0.99*rocketVel.z;
+    }
+    // Load tank if still
+    if (rocketVel.x == 0 && rocketVel.y == 0 && rocketVel.z == 0 && fuel < fullTank)
+    {
+        fuel = fuel + 0.5;
+        printf("FUELLOAD %f\n",fuel);
     }
     
     rocketPoint = VectorAdd(rocketPoint,rocketVel);
@@ -265,7 +274,7 @@ void display(void)
 	//printError("pre display");
 
 	// Key handler for update of Rocket position and orientation, camera pos etc
-	mat4 rocketRotate = keyHandler(&cam,&cameraUp,tm, &rocketPoint, &rocketVel, &rocketTopPoint);
+	mat4 rocketRotate = keyHandler(&cam,&cameraUp,tm, &rocketPoint, &rocketVel, &rocketTopPoint, &fuel);
 	camMatrix = lookAt(cam.x, cam.y, cam.z,
 				rocketPoint.x, rocketPoint.y, rocketPoint.z,
 				cameraUp.x,cameraUp.y,cameraUp.z);
@@ -347,7 +356,7 @@ void display(void)
     glUniform1i(glGetUniformLocation(programRocket, "objectFlag"), 0);
     glUniformMatrix4fv(glGetUniformLocation(programRocket, "mdlMatrix"), 1, GL_TRUE, fireTotal.m);
     
-    if(glutKeyIsDown('f'))
+    if(glutKeyIsDown('f') && fuel > 0)
     {
         DrawModel(rocketFire, programRocket, "inPosition", "inNormal", "inTexCoord");
     }
@@ -362,6 +371,7 @@ void display(void)
             isGameOver = false;
             rocketPoint = startPoint;
             tiltAngle = 0;
+            fuel = fullTank;
         }
     }
 	glutSwapBuffers();

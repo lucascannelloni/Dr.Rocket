@@ -32,7 +32,7 @@ void main(void)
     //Reflect skybox in water
     vec3 posInViewCoord = vec3(camMatrix * mdlMatrix * vec4(inPosition, 1.0));
     
-    texCoord = vec2(inPosition.x/1600, inPosition.z/1600)* tiling;
+    texCoord = vec2(inPosition.x/512, inPosition.z/512)* tiling;
     
     vec3 viewDirectionInViewCoord = normalize(posInViewCoord);
     vec3 viewDirectionInWorldCoord = InvCamMatrix * viewDirectionInViewCoord;
