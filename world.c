@@ -252,6 +252,14 @@ Model* GenerateTerrain(TextureData *tex)
 
 float heightCalc(float x, float z, Model* tm)
 {
+    if (x < 0)
+    {
+        x = texWidthTerrain + x;
+    }
+    if (z < 0)
+    {
+        z = texWidthTerrain + z;
+    }
     
     int xCeil = ceil(x);
     int zCeil = ceil(z);

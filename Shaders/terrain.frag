@@ -40,8 +40,8 @@ void main(void)
     specular = pow(cosAng,specularExponent);
 
     float dist = abs(length(vec3(pos)));
-    float horizon = 1000;
-    float world = 700;
+    float horizon = 1100;
+    float world = 600;
     
     if (dist < world)
     {

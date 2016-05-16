@@ -144,8 +144,8 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix, mat3 inverseCam, flo
     float diagTerrain = terrainOffset/sqrt(2);
 	vec3 dirVect = VectorSub(rocketPoint,cam);
 
-	float xPosPatch = floor(cam.x/256);
-	float zPosPatch = floor(cam.z/256);
+	float xPosPatch = floor(cam.x/255);
+	float zPosPatch = floor(cam.z/255);
 
 	mat4 terrainTrans = T(xPosPatch*terrainOffset,0,zPosPatch*terrainOffset);
 	mat4 total = Mult(camMatrix, terrainTrans);
@@ -265,7 +265,7 @@ void display(void)
     if (rocketVel.x == 0 && rocketVel.y == 0 && rocketVel.z == 0 && fuel < fullTank)
     {
         fuel = fuel + 0.5;
-        printf("FUELLOAD %f\n",fuel);
+      //  printf("FUELLOAD %f\n",fuel);
     }
     
     rocketPoint = VectorAdd(rocketPoint,rocketVel);

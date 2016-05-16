@@ -13,11 +13,11 @@ mat4 keyHandler(vec3* cam, vec3* cameraUp, Model* tm, vec3* rocketPoint,vec3* ro
     
     vec3 orthRocketVect = CrossProduct(dirVect, *cameraUp);
     
-    float groundHeight = heightCalc(fmod(abs(rocketPoint->x),256), fmod(abs(rocketPoint->z),256), tm);
-   // printf("rocketPy %f\n",rocketPoint->y);
-   // printf("rocketPx %f\n",fmod(abs(rocketPoint->x),256));
-   // printf("rocketPz %f\n",fmod(abs(rocketPoint->z),256));
-   // printf("GH %f\n", groundHeight);
+    float groundHeight = heightCalc(fmod(rocketPoint->x,255), fmod(rocketPoint->z,255), tm);
+    printf("rocketPy %f\n",rocketPoint->y);
+    printf("rocketPx %f\n",fmod(rocketPoint->x,256));
+    printf("rocketPz %f\n",fmod(rocketPoint->z,256));
+    printf("GH %f\n", groundHeight);
     float rocketOffset = 0;
     if (rocketPoint->y<groundHeight+rocketOffset && fabsf(rocketVel->y) < 2  && fabsf(tiltAngle) < 0.5f)
     {
@@ -53,7 +53,7 @@ mat4 keyHandler(vec3* cam, vec3* cameraUp, Model* tm, vec3* rocketPoint,vec3* ro
     {
         *rocketVel = VectorAdd(*rocketVel,ScalarMult(thrustDir,0.07));
         *fuel = *fuel - 1;
-        printf("fuel %f\n",*fuel);
+       // printf("fuel %f\n",*fuel);
     }
     
     *rocketTopPoint = VectorAdd(*rocketPoint,ScalarMult(thrustDir,7));
