@@ -40,7 +40,7 @@ GLfloat tiltAngle;
 bool isGameOver = false;
 
 // vertex array object
-Model *m, *m2, *tm,*tm2,*rocketFire, *skybox,*box[6],*rocketObject,*waterModel;
+Model *m, *m2, *tm,*tm2,*rocketFire, *skybox,*box[6],*rocketObject,*waterModel,*arrowObject;
 
 // Reference to shader program
 GLuint program,programSky,programWater, programRocket;
@@ -122,6 +122,8 @@ void init(void)
     //rocket fire
     LoadTGATextureData("grass.tga", &fire);
     rocketFire = GenerateTerrain(&fire);
+    
+    arrowObject = LoadModelPlus("Objects/redstoneRocket.obj");
 
 }
 
@@ -341,6 +343,8 @@ void display(void)
     rocketTotal = Mult(rocketTotal,scaleRocket);
     mat4 fireTotal = Mult(rocketTotal,fireTrans);
     fireTotal = Mult(fireTotal,scaleFire);
+    
+    mat4 arrowTotal = T(0.25,0.125,0.25);
 	
 	// bind texture, send to shader & draw model
 	glActiveTexture(GL_TEXTURE0);
@@ -360,12 +364,28 @@ void display(void)
     {
         DrawModel(rocketFire, programRocket, "inPosition", "inNormal", "inTexCoord");
     }
+    glUniform1i(glGetUniformLocation(programRocket, "objectFlag"), 2);
+    glUniformMatrix4fv(glGetUniformLocation(programRocket, "mdlMatrix"), 1, GL_TRUE, arrowTotal.m);
+    DrawModel(arrowObject, programRocket, "inPosition", "inNormal", "inTexCoord");
+    glUniform1i(glGetUniformLocation(programRocket, "objectFlag"), 1);
 	
 	//printError("display 2");
+    //char fuelchar;
+    //snprintf(fuelchar,"%f", fuel);
+    
+    
+    double num = fuel;
+    char output[5];
+    
+    snprintf(output, 5, "%f", num);
+    
+    sfDrawString(400, 170, output);
+    sfDrawString(400, 155, "Fuel:");
+    
     if(isGameOver)
     {
        sfDrawString(270, 100, "game over");
-        sfDrawString(250, 150, "press g to restart");
+        sfDrawString(220, 150, "press g to restart");
         if(glutKeyIsDown('g'))
         {
             isGameOver = false;
@@ -404,6 +424,8 @@ void mouse(int x, int y)
 
     yaw  = yaw + xoffset;
     pitch = pitch + yoffset;
+    printf("pitch %f\n",pitch);
+    printf("yaw %f\n",yaw);
 
     if(pitch > 60.0f)
         pitch = 60.0f;
@@ -413,6 +435,10 @@ void mouse(int x, int y)
     cameraFront.x = cos(pi*yaw/180) * cos(pi*pitch/180);
     cameraFront.y = sin(pi*pitch/180);
     cameraFront.z = sin(pi*yaw/180) * cos(pi*pitch/180);
+    
+    printf("x %f\n",cameraFront.x);
+    printf("z %f\n",cameraFront.z);
+    printf("y %f\n",cameraFront.y);
     cameraFront = Normalize(cameraFront);
     cameraFront = ScalarMult(cameraFront,10);
     
