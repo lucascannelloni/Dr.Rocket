@@ -15,7 +15,7 @@ uniform mat4 mdlMatrix;
 uniform vec3 camPos;
 
 float shade,diffuse,specular,cosAng,fogFactor;
-int specularExponent = 3;
+int specularExponent = 2;
 
 void main(void)
 {
@@ -41,7 +41,7 @@ void main(void)
 
     float dist = abs(length(vec3(pos)));
     float horizon = 1100;
-    float world = 600;
+    float world = 500;
     
     if (dist < world)
     {

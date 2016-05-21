@@ -40,7 +40,7 @@ GLfloat tiltAngle;
 bool isGameOver = false;
 
 // vertex array object
-Model *m, *m2, *tm,*tm2,*rocketFire, *skybox,*box[6],*rocketObject,*waterModel,*arrowObject;
+Model *m, *m2, *tm,*tm2,*rocketFire, *skybox,*box[6],*rocketObject,*waterModel;
 
 // Reference to shader program
 GLuint program,programSky,programWater, programRocket;
@@ -122,21 +122,8 @@ void init(void)
     //rocket fire
     LoadTGATextureData("grass.tga", &fire);
     rocketFire = GenerateTerrain(&fire);
-    
-    arrowObject = LoadModelPlus("Objects/redstoneRocket.obj");
 
 }
-
-
-/*mat4 placeModelOnGround(float x, float z)
-{
- 	float y = heightCalc(x,z,tm);
- 	printf("x %f\n", x);
- 	printf("y %f\n", y);
- 	printf("z %f\n", z);
- 	mat4 trans = T(x,y,z);
- 	return trans;
-}*/
 
 void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix, mat3 inverseCam, float moveFactor)
 {
@@ -157,36 +144,19 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix, mat3 inverseCam, flo
     mat4 planeRotPos = Ry(frustumAngle);
     mat4 planeRotNeg = Ry(-frustumAngle);
     
-   // vec3 rotVect = CrossProduct(SetVector(0,1,0),dirVect);
-   // mat4 planeRotUp = ArbRotate(dirVect,frustumAngle);
-   // mat4 planeRotDown = ArbRotate(dirVect,-frustumAngle);
-    
     
     vec3 rightVect = MultVec3(planeRotNeg,dirVect);
     vec3 leftVect = MultVec3(planeRotPos,dirVect);
-  //  vec3 upVect = MultVec3(planeRotUp,dirVect);
-   // vec3 downVect = MultVec3(planeRotDown,dirVect);
     
     vec3 rightPlane = Normalize(CrossProduct(SetVector(0,1,0),rightVect));
     vec3 leftPlane = Normalize(CrossProduct(SetVector(0,-1,0),leftVect));
- //   vec3 upPlane = Normalize(CrossProduct(SetVector(0,1,0),upVect));
- //   vec3 downPlane = Normalize(CrossProduct(SetVector(0,-1,0),downVect));
     
-    float rightD = DotProduct(rightPlane,cam);//VectorSub(cam,ScalarMult(Normalize(dirVect),terrainOffset/sqrt(2))));
-    float leftD = DotProduct(leftPlane,cam);//VectorSub(cam,ScalarMult(Normalize(dirVect),terrainOffset/sqrt(2))));
-//    float upD = DotProduct(upPlane,cam);
-//    float downD = DotProduct(downPlane,cam);
-
-   //rightPlane = SetVector(rightPlane.x/rightD,rightPlane.y/rightD,rightPlane.z/rightD);
-   //leftPlane = SetVector(leftPlane.x/leftD,leftPlane.y/leftD,leftPlane.z/leftD);
+    float rightD = DotProduct(rightPlane,cam);
+    float leftD = DotProduct(leftPlane,cam);
     
     float scalarGridRight;
     float scalarGridLeft;
- //   float scalarGridUp;
- //   float scalarGridDown;
-    
-   // glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
-   // DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
+
 
     glUseProgram(programWater);
     glActiveTexture(GL_TEXTURE2);
@@ -213,13 +183,12 @@ void drawTerrain(vec3 cam,vec3 rocketPoint, mat4 camMatrix, mat3 inverseCam, flo
             
             scalarGridRight = DotProduct(gridPoint1,rightPlane);
             scalarGridLeft = DotProduct(gridPoint1,leftPlane);
-           // scalarGridUp = DotProduct(gridPoint1,upPlane);
-           // scalarGridDown = DotProduct(gridPoint1,downPlane);
 
             
-            if (scalarGridRight<(rightD + diagTerrain) && scalarGridLeft<(leftD + diagTerrain))// || (scalarGridUp < (upD + diagTerrain) && scalarGridDown < (downD + diagTerrain)))
+            if (scalarGridRight<(rightD + diagTerrain) && scalarGridLeft<(leftD + diagTerrain))
             {
               //  printf("drawn patch\n");
+                
                 // TERRAIN
                 glEnable(GL_POLYGON_SMOOTH);
                 glUseProgram(program);
@@ -267,13 +236,11 @@ void display(void)
     if (rocketVel.x == 0 && rocketVel.y == 0 && rocketVel.z == 0 && fuel < fullTank)
     {
         fuel = fuel + 0.5;
-      //  printf("FUELLOAD %f\n",fuel);
     }
     
     rocketPoint = VectorAdd(rocketPoint,rocketVel);
 	
 	mat4 total, modelView, camMatrix;
-	//printError("pre display");
 
 	// Key handler for update of Rocket position and orientation, camera pos etc
 	mat4 rocketRotate = keyHandler(&cam,&cameraUp,tm, &rocketPoint, &rocketVel, &rocketTopPoint, &fuel);
@@ -343,8 +310,6 @@ void display(void)
     rocketTotal = Mult(rocketTotal,scaleRocket);
     mat4 fireTotal = Mult(rocketTotal,fireTrans);
     fireTotal = Mult(fireTotal,scaleFire);
-    
-    mat4 arrowTotal = T(0.25,0.125,0.25);
 	
 	// bind texture, send to shader & draw model
 	glActiveTexture(GL_TEXTURE0);
@@ -354,6 +319,7 @@ void display(void)
 	glUniform1i(glGetUniformLocation(programRocket, "texRocket"), 0);
 	glUniformMatrix4fv(glGetUniformLocation(programRocket, "mdlMatrix"), 1, GL_TRUE, rocketTotal.m);
 	glUniformMatrix4fv(glGetUniformLocation(programRocket, "camMatrix"), 1, GL_TRUE, camMatrix.m);
+    glUniform3f(glGetUniformLocation(programRocket, "camPos"), cam.x, cam.y,cam.z);
     
 	DrawModel(rocketObject, programRocket, "inPosition", "inNormal", "inTexCoord");
     
@@ -364,15 +330,6 @@ void display(void)
     {
         DrawModel(rocketFire, programRocket, "inPosition", "inNormal", "inTexCoord");
     }
-    glUniform1i(glGetUniformLocation(programRocket, "objectFlag"), 2);
-    glUniformMatrix4fv(glGetUniformLocation(programRocket, "mdlMatrix"), 1, GL_TRUE, arrowTotal.m);
-    DrawModel(arrowObject, programRocket, "inPosition", "inNormal", "inTexCoord");
-    glUniform1i(glGetUniformLocation(programRocket, "objectFlag"), 1);
-	
-	//printError("display 2");
-    //char fuelchar;
-    //snprintf(fuelchar,"%f", fuel);
-    
     
     double num = fuel;
     char output[5];
@@ -424,8 +381,6 @@ void mouse(int x, int y)
 
     yaw  = yaw + xoffset;
     pitch = pitch + yoffset;
-    printf("pitch %f\n",pitch);
-    printf("yaw %f\n",yaw);
 
     if(pitch > 60.0f)
         pitch = 60.0f;
@@ -436,9 +391,6 @@ void mouse(int x, int y)
     cameraFront.y = sin(pi*pitch/180);
     cameraFront.z = sin(pi*yaw/180) * cos(pi*pitch/180);
     
-    printf("x %f\n",cameraFront.x);
-    printf("z %f\n",cameraFront.z);
-    printf("y %f\n",cameraFront.y);
     cameraFront = Normalize(cameraFront);
     cameraFront = ScalarMult(cameraFront,10);
     

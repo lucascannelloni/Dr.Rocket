@@ -3,53 +3,44 @@
 out vec4 outColor;
 
 in vec2 texCoord;
-in vec3 transformedNormal;
 in vec4 vertexPoint;
 in vec3 exNormal;
 in vec3 pos;
+in vec3 fromLightVect;
+in vec3 toCameraVect;
 
 uniform sampler2D texRocket;
-uniform samplerCube cubeMap;
+
 uniform mat4 mdlMatrix;
 uniform int objectFlag;
 
 float shade,diffuse,specular,cosAng;
-int specularExponent = 3;
+int specularExponent = 20;
+
+const vec3 lightColor = vec3(1,0,0.3);
+const float reflectivity = 0.8;
 
 void main(void)
 {
     
     vec4 outColor1,outColor2;
     
-    // Light & Normal
-    vec3 normLight = vec3(.5,1,.5); //above
-    mat3 normalMatrix1 = mat3(mdlMatrix);
-    normLight = normalMatrix1*normLight;
-    
-    vec3 normNormals = normalize(transformedNormal);
-    
-    //Diffuse
-    shade = dot(normNormals, normLight);
-    diffuse = clamp(shade,0,1);
-    
     //Specular
-    vec3 eyeDir = -normalize(vec3(vertexPoint));
-    vec3 reflectDir = reflect(-normLight,normNormals);
-
-    cosAng = max(0.0,dot(reflectDir,eyeDir));
-    specular = pow(cosAng,specularExponent);
-
+    
+    vec3 reflectedLight = reflect(normalize(fromLightVect), exNormal);
+    specular = max(dot(reflectedLight, normalize(toCameraVect)), 0.0);
+    specular = pow(specular, specularExponent);
+    vec3 specularHighlights = lightColor * specular * reflectivity;
     
     // Out Color
     
     outColor2 = texture(texRocket,texCoord);
-    
-    outColor1 = vec4(0.5*(diffuse + specular), 0.5*(diffuse + specular), 0.5*(diffuse + specular),1);
-    outColor = mix(outColor2,outColor1,0.7);//outColor1*outColor2;
+
+    outColor = outColor2 + vec4(specularHighlights,0.0);
     if(objectFlag==0)
     {
         int r = int(pos.x) % 5;
-        outColor=vec4(0.8+(1/r),0.4,0.1,0.1) + outColor1;
+        outColor=vec4(0.8+(1/r),0.4,0.1,0.1) + vec4(specularHighlights,0.0);
     }
 
 
